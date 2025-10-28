@@ -1,14 +1,7 @@
-//
-//  Models.swift
-//  RentSwipe
-//
-//  Created by Ty Mabee on 2025-10-28.
-//
-
 import Foundation
 import SwiftUI
 
-/// High-level account roles supported in the prototype experience.
+// High-level account roles supported in the prototype experience.
 enum AccountRole: String, CaseIterable, Identifiable {
     case tenant
     case landlord
@@ -85,17 +78,18 @@ struct RentalListing: Identifiable, Hashable {
     let id = UUID()
     let title: String
     let neighborhood: String
-    let pricePerMonth: Int
+    let pricePerMonth: Double
     let bedrooms: Int
     let bathrooms: Double
     let walkTimeToCampusMinutes: Int
+    let amenities: [ListingAmenity]
     let rating: Double
     let isVerified: Bool
-    let amenities: [ListingAmenity]
-    let imageName: String
+    
+    let photoNames: [String]
 }
 
-enum ListingAmenity: String, CaseIterable, Identifiable {
+enum ListingAmenity: String, CaseIterable, Identifiable, Hashable{
     case furnished
     case utilitiesIncluded
     case laundryInUnit
@@ -324,10 +318,12 @@ enum SampleData {
             bedrooms: 2,
             bathrooms: 1.5,
             walkTimeToCampusMinutes: 8,
-            rating: 4.8,
-            isVerified: true,
             amenities: [.furnished, .laundryInUnit, .utilitiesIncluded, .studyLounge],
-            imageName: "house.fill"
+            rating: 4.8,
+            
+            isVerified: true,
+            
+            photoNames: ["jacob-1", "jacob-2", "jacob-3"]
         ),
         RentalListing(
             title: "Sunny Studio",
@@ -336,10 +332,11 @@ enum SampleData {
             bedrooms: 1,
             bathrooms: 1,
             walkTimeToCampusMinutes: 12,
+            amenities: [.furnished, .utilitiesIncluded, .gym],
             rating: 4.5,
             isVerified: true,
-            amenities: [.furnished, .utilitiesIncluded, .gym],
-            imageName: "sun.max.fill"
+            
+            photoNames: ["loft-1", "loft-2", "loft-3"]
         ),
         RentalListing(
             title: "3BR Townhome",
@@ -348,10 +345,11 @@ enum SampleData {
             bedrooms: 3,
             bathrooms: 2,
             walkTimeToCampusMinutes: 5,
+            amenities: [.parking, .laundryInUnit, .petsAllowed],
             rating: 4.9,
             isVerified: false,
-            amenities: [.parking, .laundryInUnit, .petsAllowed],
-            imageName: "building.2.fill"
+            
+            photoNames: ["town-1", "town-2", "town-3"]
         )
     ]
 

@@ -18,6 +18,7 @@ final class PrototypeSessionStore: ObservableObject {
     }
 }
 
+@available(iOS 16.4, *)
 @main
 struct RentSwipeApp: App {
     @StateObject private var sessionStore = PrototypeSessionStore()
@@ -59,6 +60,7 @@ struct RentSwipeApp: App {
     }
 }
 
+@available(iOS 16.4, *)
 struct PrototypeHomeView: View {
     @EnvironmentObject private var sessionStore: PrototypeSessionStore
     let user: PrototypeUser
@@ -67,6 +69,13 @@ struct PrototypeHomeView: View {
 
     var body: some View {
         TabView {
+            if user.role == .tenant {
+                NavigationStack{
+                    SwipeDiscoveryView(listings: SampleData.tenantListings)
+                        .navigationTitle("Discover")
+                        .toolbar{ logoutToolbar }
+                }
+            }
             NavigationStack {
                 roleDashboard
                     .navigationTitle(workspaceTitle)
@@ -147,7 +156,7 @@ struct TenantDashboardView: View {
     private let priceFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
+        formatter.currencyCode = "CAD"
         return formatter
     }()
 
@@ -439,7 +448,7 @@ private struct FavoriteListingRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            Image(systemName: listing.imageName)
+            Image(systemName: listing.photoNames[0])
                 .resizable()
                 .scaledToFit()
                 .frame(width: 44, height: 44)

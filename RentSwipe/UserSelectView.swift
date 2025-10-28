@@ -1,10 +1,3 @@
-//
-//  UserSelectView.swift
-//  RentSwipe
-//
-//  Created by Ty Mabee on 2025-10-28.
-//
-
 import SwiftUI
 
 struct UserSelectView: View {

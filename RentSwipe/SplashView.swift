@@ -1,10 +1,3 @@
-//
-//  SplashView.swift
-//  RentSwipe
-//
-//  Created by Ty Mabee on 2025-10-27.
-//
-
 import SwiftUI
 
 struct SplashView: View {
@@ -18,7 +11,7 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.black
 
             Text(String(fullText.prefix(visibleCount)))
                 .font(.system(size: 40, weight: .bold, design: .rounded))

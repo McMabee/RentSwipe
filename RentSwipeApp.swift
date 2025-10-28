@@ -1,8 +1,8 @@
 //
-//  RentSwipeApp.swift
+//  Models.swift
 //  RentSwipe
 //
-//  Created by Codex CLI.
+//  Created by Ty Mabee on 2025-10-28.
 //
 
 import SwiftUI

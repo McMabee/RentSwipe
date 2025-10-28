@@ -17,6 +17,7 @@
 		392656BC2EB05E4F00D55080 /* LoginEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BB2EB05E4800D55080 /* LoginEntryView.swift */; };
 		392656BE2EB0EC4A00D55080 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BD2EB0EC4700D55080 /* Models.swift */; };
 		392656C02EB0EC6100D55080 /* UserSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BF2EB0EC5E00D55080 /* UserSelectView.swift */; };
+		392656C22EB113FC00D55080 /* SwipeCardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656C12EB113FB00D55080 /* SwipeCardModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,7 @@
 		392656BB2EB05E4800D55080 /* LoginEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginEntryView.swift; sourceTree = "<group>"; };
 		392656BD2EB0EC4700D55080 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		392656BF2EB0EC5E00D55080 /* UserSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSelectView.swift; sourceTree = "<group>"; };
+		392656C12EB113FB00D55080 /* SwipeCardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeCardModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +103,7 @@
 				392656BF2EB0EC5E00D55080 /* UserSelectView.swift */,
 				392656B92EB05E1A00D55080 /* SplashView.swift */,
 				392656BB2EB05E4800D55080 /* LoginEntryView.swift */,
+				392656C12EB113FB00D55080 /* SwipeCardModel.swift */,
 				391A9EF82EAFDAA60044FE3A /* Assets.xcassets */,
 				391A9EFD2EAFDACD0044FE3A /* Base.lproj */,
 				391A9EFF2EAFDAEF0044FE3A /* ContentView.swift */,
@@ -270,6 +273,7 @@
 			files = (
 				391A9F002EAFDAEF0044FE3A /* ContentView.swift in Sources */,
 				392656BA2EB05E2200D55080 /* SplashView.swift in Sources */,
+				392656C22EB113FC00D55080 /* SwipeCardModel.swift in Sources */,
 				392656BC2EB05E4F00D55080 /* LoginEntryView.swift in Sources */,
 				392656BE2EB0EC4A00D55080 /* Models.swift in Sources */,
 				392656C02EB0EC6100D55080 /* UserSelectView.swift in Sources */,

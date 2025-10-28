@@ -1,10 +1,3 @@
-//
-//  LoginEntryView.swift
-//  RentSwipe
-//
-//  Created by Ty Mabee on 2025-10-27.
-//
-
 import SwiftUI
 
 struct LoginEntryView: View {
@@ -16,7 +9,7 @@ struct LoginEntryView: View {
             .environmentObject(sessionStore)
             .opacity(appear)
             .onAppear {
-                withAnimation(.easeOut(duration: 0.4)) {
+                withAnimation(.easeOut(duration: 0.8)) {
                     appear = 1.0
                 }
             }
