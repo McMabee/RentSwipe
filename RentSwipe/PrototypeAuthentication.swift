@@ -7,51 +7,6 @@
 
 import Foundation
 
-enum AccountRole: String, CaseIterable, Identifiable {
-    case tenant
-    case landlord
-
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .tenant:
-            return "Tenant Login"
-        case .landlord:
-            return "Landlord Login"
-        }
-    }
-
-    var message: String {
-        switch self {
-        case .tenant:
-            return "Access personalized listings, save favorites, and connect with landlords."
-        case .landlord:
-            return "List properties, review applicants, and manage tenant communications."
-        }
-    }
-
-    var primaryActionLabel: String {
-        switch self {
-        case .tenant:
-            return "Continue as Tenant"
-        case .landlord:
-            return "Continue as Landlord"
-        }
-    }
-
-    var displayLabel: String {
-        rawValue.capitalized
-    }
-}
-
-struct PrototypeUser: Identifiable, Equatable {
-    let id = UUID()
-    let email: String
-    let displayName: String
-    let role: AccountRole
-}
-
 enum AuthenticationError: LocalizedError {
     case accountNotFound
     case invalidCredentials
@@ -66,7 +21,6 @@ enum AuthenticationError: LocalizedError {
     }
 }
 
-//#TODO: Fix AccountRole bug
 protocol PrototypeAuthenticating {
     func authenticate(email: String, password: String, role: AccountRole) throws -> PrototypeUser
 }
@@ -84,13 +38,19 @@ struct PrototypeLocalAuthService: PrototypeAuthenticating {
             PrototypeAccount(email: "rachel.green@rentswipe.mock", password: "rentals22", displayName: "Rachel Green")
         ]
 
+        let adminAccounts: [PrototypeAccount] = [
+            PrototypeAccount(email: "techlead@rentswipe.mock", password: "trust&verify", displayName: "Taylor Morgan"),
+            PrototypeAccount(email: "compliance@rentswipe.mock", password: "moderate", displayName: "Jordan Smith")
+        ]
+
         func makeLookup(_ accounts: [PrototypeAccount]) -> [String: PrototypeAccount] {
             Dictionary(uniqueKeysWithValues: accounts.map { ($0.email.lowercased(), $0) })
         }
 
         return [
             .tenant: makeLookup(tenantAccounts),
-            .landlord: makeLookup(landlordAccounts)
+            .landlord: makeLookup(landlordAccounts),
+            .admin: makeLookup(adminAccounts)
         ]
     }()
 
