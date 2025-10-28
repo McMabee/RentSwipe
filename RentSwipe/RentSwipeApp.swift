@@ -1,6 +1,4 @@
 import SwiftUI
-
-//#TODO: Fix errors, finish app to include all features in technical document. Clean up REPO
 @MainActor
 final class PrototypeSessionStore: ObservableObject {
     @Published private(set) var currentUser: PrototypeUser?
@@ -248,7 +246,6 @@ struct TenantDashboardView: View {
                     Text("New listings will drop once landlords finish verification.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(24)

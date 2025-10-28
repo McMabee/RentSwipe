@@ -11,7 +11,6 @@ struct LoginEntryView: View {
     @EnvironmentObject private var sessionStore: PrototypeSessionStore
     @State private var appear: Double = 0.0
 
-    //#TODO: fix ContentView scope issue
     var body: some View {
         ContentView()
             .environmentObject(sessionStore)
