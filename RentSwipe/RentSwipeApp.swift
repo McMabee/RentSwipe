@@ -134,8 +134,6 @@ struct PrototypeHomeView: View {
 // MARK: - Tenant Experience
 
 struct TenantDashboardView: View {
-    private let allListings: [RentalListing] = SampleData.tenantListings
-
     @State private var discoveryQueue: [RentalListing] = SampleData.tenantListings
     @State private var favorites: [RentalListing] = []
     @State private var dismissed: [RentalListing] = []
@@ -164,12 +162,6 @@ struct TenantDashboardView: View {
             }
             .padding(.vertical, 24)
             .padding(.horizontal, 20)
-        }
-        .onAppear {
-            refreshDiscoveryQueue(resetDismissed: false)
-        }
-        .onChange(of: filters) { _ in
-            refreshDiscoveryQueue(resetDismissed: true)
         }
         .background(Color(.systemGroupedBackground))
         .sheet(isPresented: $showFilters) {
@@ -245,42 +237,15 @@ struct TenantDashboardView: View {
                     }
                 }
             } else {
-                VStack(spacing: 16) {
-                    if filteredListings.isEmpty {
-                        Image(systemName: "line.3.horizontal.decrease.circle")
-                            .font(.system(size: 42))
-                            .foregroundColor(.indigo)
-                        Text("No listings match your filters")
-                            .font(.headline)
-                        Text("Try loosening your filters to discover more options.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        Button {
-                            showFilters = true
-                        } label: {
-                            Label("Adjust Filters", systemImage: "slider.horizontal.3")
-                        }
-                        .buttonStyle(.borderedProminent)
-                    } else {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 42))
-                            .foregroundColor(.indigo)
-                        Text("You're all caught up!")
-                            .font(.headline)
-                        Text("Refresh suggestions to revisit snoozed listings.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        Button {
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                refreshDiscoveryQueue(resetDismissed: true)
-                            }
-                        } label: {
-                            Label("Refresh Suggestions", systemImage: "arrow.clockwise")
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
+                VStack(spacing: 12) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 42))
+                        .foregroundColor(.indigo)
+                    Text("You're all caught up!")
+                        .font(.headline)
+                    Text("New listings will drop once landlords finish verification.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(24)
@@ -362,7 +327,7 @@ struct TenantDashboardView: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 8) {
-                Label(filters.commutePriority.description, systemImage: commuteIconName)
+                Label(filters.commutePriority.description, systemImage: "figure.walk")
                     .font(.caption)
                     .padding(8)
                     .background(Color(.systemGray6), in: Capsule())
@@ -386,9 +351,7 @@ struct TenantDashboardView: View {
 
     private func pass(_ listing: RentalListing) {
         guard let index = discoveryQueue.firstIndex(of: listing) else { return }
-        if !dismissed.contains(listing) {
-            dismissed.append(listing)
-        }
+        dismissed.append(listing)
         discoveryQueue.remove(at: index)
     }
 
@@ -398,61 +361,6 @@ struct TenantDashboardView: View {
             favorites.append(listing)
         }
         discoveryQueue.remove(at: index)
-    }
-
-    private var commuteIconName: String {
-        switch filters.commutePriority {
-        case .walk:
-            return "figure.walk"
-        case .transit:
-            return "tram.fill"
-        case .parking:
-            return "car.fill"
-        }
-    }
-
-    private var filteredListings: [RentalListing] {
-        allListings.filter(matchesFilters)
-    }
-
-    private func refreshDiscoveryQueue(resetDismissed: Bool) {
-        if resetDismissed {
-            dismissed.removeAll()
-        }
-
-        let consumedIDs = Set(favorites.map(\.id)).union(dismissed.map(\.id))
-        let refreshed = allListings
-            .filter(matchesFilters)
-            .filter { !consumedIDs.contains($0.id) }
-
-        if refreshed != discoveryQueue {
-            discoveryQueue = refreshed
-        }
-    }
-
-    private func matchesFilters(_ listing: RentalListing) -> Bool {
-        guard listing.pricePerMonth <= filters.maxPrice else { return false }
-        guard listing.bedrooms >= filters.minBedrooms else { return false }
-
-        if filters.allowPets && !listing.amenities.contains(.petsAllowed) {
-            return false
-        }
-
-        let listingAmenities = Set(listing.amenities)
-        if !filters.mustHaveAmenities.isSubset(of: listingAmenities) {
-            return false
-        }
-
-        switch filters.commutePriority {
-        case .walk:
-            guard listing.walkTimeToCampusMinutes <= 15 else { return false }
-        case .transit:
-            guard listing.walkTimeToCampusMinutes <= 30 else { return false }
-        case .parking:
-            guard listingAmenities.contains(.parking) else { return false }
-        }
-
-        return true
     }
 }
 

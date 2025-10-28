@@ -145,11 +145,11 @@ enum ListingAmenity: String, CaseIterable, Identifiable {
     }
 }
 
-struct TenantPreferenceProfile: Equatable {
-    var maxPrice: Int = 2500
+struct TenantPreferenceProfile {
+    var maxPrice: Int = 2200
     var minBedrooms: Int = 1
     var commutePriority: CommutePriority = .walk
-    var mustHaveAmenities: Set<ListingAmenity> = [.laundryInUnit]
+    var mustHaveAmenities: Set<ListingAmenity> = [.laundryInUnit, .utilitiesIncluded]
     var allowPets: Bool = true
 
     enum CommutePriority: String, CaseIterable, Identifiable {
