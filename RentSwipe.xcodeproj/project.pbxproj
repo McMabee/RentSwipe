@@ -13,6 +13,10 @@
 		391A9F062EAFDB0F0044FE3A /* PrototypeAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391A9F042EAFDB0F0044FE3A /* PrototypeAuthentication.swift */; };
 		391A9F072EAFDB0F0044FE3A /* RentSwipeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391A9F052EAFDB0F0044FE3A /* RentSwipeApp.swift */; };
 		391A9F082EAFDB0F0044FE3A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 391A9F022EAFDB0F0044FE3A /* Preview Assets.xcassets */; };
+		392656BA2EB05E2200D55080 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656B92EB05E1A00D55080 /* SplashView.swift */; };
+		392656BC2EB05E4F00D55080 /* LoginEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BB2EB05E4800D55080 /* LoginEntryView.swift */; };
+		392656BE2EB0EC4A00D55080 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BD2EB0EC4700D55080 /* Models.swift */; };
+		392656C02EB0EC6100D55080 /* UserSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BF2EB0EC5E00D55080 /* UserSelectView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +51,10 @@
 		391A9F0B2EAFDB420044FE3A /* RentSwipeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RentSwipeApp.swift; sourceTree = "<group>"; };
 		391A9F0C2EAFDB4E0044FE3A /* RentSwipeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RentSwipeTests.swift; sourceTree = "<group>"; };
 		391A9F0E2EAFDB5F0044FE3A /* RentSwipeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RentSwipeUITests.swift; sourceTree = "<group>"; };
+		392656B92EB05E1A00D55080 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		392656BB2EB05E4800D55080 /* LoginEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginEntryView.swift; sourceTree = "<group>"; };
+		392656BD2EB0EC4700D55080 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		392656BF2EB0EC5E00D55080 /* UserSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSelectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +97,10 @@
 		2B8DA2E82C5A5A2B00A4A927 /* RentSwipe */ = {
 			isa = PBXGroup;
 			children = (
+				392656BD2EB0EC4700D55080 /* Models.swift */,
+				392656BF2EB0EC5E00D55080 /* UserSelectView.swift */,
+				392656B92EB05E1A00D55080 /* SplashView.swift */,
+				392656BB2EB05E4800D55080 /* LoginEntryView.swift */,
 				391A9EF82EAFDAA60044FE3A /* Assets.xcassets */,
 				391A9EFD2EAFDACD0044FE3A /* Base.lproj */,
 				391A9EFF2EAFDAEF0044FE3A /* ContentView.swift */,
@@ -257,6 +269,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				391A9F002EAFDAEF0044FE3A /* ContentView.swift in Sources */,
+				392656BA2EB05E2200D55080 /* SplashView.swift in Sources */,
+				392656BC2EB05E4F00D55080 /* LoginEntryView.swift in Sources */,
+				392656BE2EB0EC4A00D55080 /* Models.swift in Sources */,
+				392656C02EB0EC6100D55080 /* UserSelectView.swift in Sources */,
 				391A9F062EAFDB0F0044FE3A /* PrototypeAuthentication.swift in Sources */,
 				391A9F072EAFDB0F0044FE3A /* RentSwipeApp.swift in Sources */,
 			);

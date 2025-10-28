@@ -1,12 +1,6 @@
-//
-//  RentSwipeApp.swift
-//  RentSwipe
-//
-//  Created by Codex CLI.
-//
-
 import SwiftUI
 
+//#TODO: Fix errors, finish app to include all features in technical document. Clean up REPO
 @MainActor
 final class PrototypeSessionStore: ObservableObject {
     @Published private(set) var currentUser: PrototypeUser?
@@ -29,20 +23,52 @@ final class PrototypeSessionStore: ObservableObject {
 @main
 struct RentSwipeApp: App {
     @StateObject private var sessionStore = PrototypeSessionStore()
-
+    
+    @State private var showSplash: Bool = true
+    @State private var selectedRole: AccountRoleType? = nil
+    
     var body: some Scene {
         WindowGroup {
-            if let user = sessionStore.currentUser {
-                PrototypeHomeView(user: user)
-                    .environmentObject(sessionStore)
-            } else {
-                ContentView()
-                    .environmentObject(sessionStore)
+            ZStack {
+                if showSplash {
+                    SplashView(finished: splashFinishedBinding)
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
+                else if sessionStore.currentUser == nil {
+                    NavigationStack {
+                        if let role = selectedRole {
+                            LoginSignupView(roleType: role)
+                                .environmentObject(sessionStore)
+                        } else {
+                            UserSelectView(selectedRole: $selectedRole)
+                        }
+                    }
+                }
+                else {
+                    // user is logged in
+                    PrototypeHomeView(user: sessionStore.currentUser!)
+                        .environmentObject(sessionStore)
+                }
             }
         }
     }
+    
+    private var splashFinishedBinding: Binding<Bool> {
+        Binding(
+            get: { !showSplash },
+            set: { newFinished in
+                if newFinished {
+                    withAnimation(.easeOut(duration: 0.4)) {
+                        showSplash = false
+                    }
+                }
+            }
+        )
+    }
 }
 
+// same PrototypeHomeView you already have
 struct PrototypeHomeView: View {
     @EnvironmentObject private var sessionStore: PrototypeSessionStore
     let user: PrototypeUser

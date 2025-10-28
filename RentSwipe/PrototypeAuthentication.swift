@@ -59,18 +59,20 @@ enum AuthenticationError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .accountNotFound:
-            return "We couldn't find an account that matches your email and role."
+            return "We couldn’t find an account that matches your email and role."
         case .invalidCredentials:
             return "The password you entered is incorrect. Please try again."
         }
     }
 }
 
+//#TODO: Fix AccountRole bug
 protocol PrototypeAuthenticating {
     func authenticate(email: String, password: String, role: AccountRole) throws -> PrototypeUser
 }
 
 struct PrototypeLocalAuthService: PrototypeAuthenticating {
+    // Pre-set accounts by role
     private let accountsByRole: [AccountRole: [String: PrototypeAccount]] = {
         let tenantAccounts: [PrototypeAccount] = [
             PrototypeAccount(email: "jessica.lee@rentswipe.mock", password: "swiftui123", displayName: "Jessica Lee"),
