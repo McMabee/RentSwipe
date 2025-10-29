@@ -17,7 +17,15 @@
 		392656BC2EB05E4F00D55080 /* LoginEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BB2EB05E4800D55080 /* LoginEntryView.swift */; };
 		392656BE2EB0EC4A00D55080 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BD2EB0EC4700D55080 /* Models.swift */; };
 		392656C02EB0EC6100D55080 /* UserSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656BF2EB0EC5E00D55080 /* UserSelectView.swift */; };
-		392656C22EB113FC00D55080 /* SwipeCardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656C12EB113FB00D55080 /* SwipeCardModel.swift */; };
+		392656C22EB113FC00D55080 /* SwipeDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392656C12EB113FB00D55080 /* SwipeDiscoveryView.swift */; };
+		394F9C842EB2A65200585D09 /* FavouritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C832EB2A64C00585D09 /* FavouritesStore.swift */; };
+		394F9C862EB2A66300585D09 /* FavouritesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C852EB2A65E00585D09 /* FavouritesListView.swift */; };
+		394F9C882EB2A6D800585D09 /* ListingComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C872EB2A6D300585D09 /* ListingComparisonView.swift */; };
+		394F9C8A2EB2B6D300585D09 /* ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C892EB2B6D000585D09 /* ChatModels.swift */; };
+		394F9C8C2EB2B7CE00585D09 /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C8B2EB2B7CB00585D09 /* ChatStore.swift */; };
+		394F9C8E2EB2B7E800585D09 /* ChatsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C8D2EB2B7E000585D09 /* ChatsHomeView.swift */; };
+		394F9C902EB2B7FC00585D09 /* ChatThreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C8F2EB2B7FC00585D09 /* ChatThreadView.swift */; };
+		394F9C922EB2B80800585D09 /* MessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C912EB2B80800585D09 /* MessageBubble.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,14 +57,21 @@
 		391A9F022EAFDB0F0044FE3A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		391A9F042EAFDB0F0044FE3A /* PrototypeAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeAuthentication.swift; sourceTree = "<group>"; };
 		391A9F052EAFDB0F0044FE3A /* RentSwipeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RentSwipeApp.swift; sourceTree = "<group>"; };
-		391A9F0B2EAFDB420044FE3A /* RentSwipeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RentSwipeApp.swift; sourceTree = "<group>"; };
 		391A9F0C2EAFDB4E0044FE3A /* RentSwipeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RentSwipeTests.swift; sourceTree = "<group>"; };
 		391A9F0E2EAFDB5F0044FE3A /* RentSwipeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RentSwipeUITests.swift; sourceTree = "<group>"; };
 		392656B92EB05E1A00D55080 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		392656BB2EB05E4800D55080 /* LoginEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginEntryView.swift; sourceTree = "<group>"; };
 		392656BD2EB0EC4700D55080 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		392656BF2EB0EC5E00D55080 /* UserSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSelectView.swift; sourceTree = "<group>"; };
-		392656C12EB113FB00D55080 /* SwipeCardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeCardModel.swift; sourceTree = "<group>"; };
+		392656C12EB113FB00D55080 /* SwipeDiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeDiscoveryView.swift; sourceTree = "<group>"; };
+		394F9C832EB2A64C00585D09 /* FavouritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesStore.swift; sourceTree = "<group>"; };
+		394F9C852EB2A65E00585D09 /* FavouritesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesListView.swift; sourceTree = "<group>"; };
+		394F9C872EB2A6D300585D09 /* ListingComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingComparisonView.swift; sourceTree = "<group>"; };
+		394F9C892EB2B6D000585D09 /* ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatModels.swift; sourceTree = "<group>"; };
+		394F9C8B2EB2B7CB00585D09 /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
+		394F9C8D2EB2B7E000585D09 /* ChatsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsHomeView.swift; sourceTree = "<group>"; };
+		394F9C8F2EB2B7FC00585D09 /* ChatThreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatThreadView.swift; sourceTree = "<group>"; };
+		394F9C912EB2B80800585D09 /* MessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubble.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,7 +103,6 @@
 			isa = PBXGroup;
 			children = (
 				391A9EFA2EAFDAB70044FE3A /* Assets.xcassets */,
-				391A9F0B2EAFDB420044FE3A /* RentSwipeApp.swift */,
 				391A9F0F2EAFDB5F0044FE3A /* RentSwipeUITests */,
 				391A9F0D2EAFDB4E0044FE3A /* RentSwipeTests */,
 				2B8DA2E82C5A5A2B00A4A927 /* RentSwipe */,
@@ -100,17 +114,15 @@
 			isa = PBXGroup;
 			children = (
 				392656BD2EB0EC4700D55080 /* Models.swift */,
-				392656BF2EB0EC5E00D55080 /* UserSelectView.swift */,
-				392656B92EB05E1A00D55080 /* SplashView.swift */,
-				392656BB2EB05E4800D55080 /* LoginEntryView.swift */,
-				392656C12EB113FB00D55080 /* SwipeCardModel.swift */,
+				394F9C832EB2A64C00585D09 /* FavouritesStore.swift */,
+				394F9C952EB2C05400585D09 /* Chat */,
 				391A9EF82EAFDAA60044FE3A /* Assets.xcassets */,
 				391A9EFD2EAFDACD0044FE3A /* Base.lproj */,
 				391A9EFF2EAFDAEF0044FE3A /* ContentView.swift */,
-				391A9F012EAFDB0F0044FE3A /* Info.plist */,
 				391A9F032EAFDB0F0044FE3A /* Preview Content */,
 				391A9F042EAFDB0F0044FE3A /* PrototypeAuthentication.swift */,
 				391A9F052EAFDB0F0044FE3A /* RentSwipeApp.swift */,
+				394F9C932EB2BFF700585D09 /* Views */,
 			);
 			path = RentSwipe;
 			sourceTree = "<group>";
@@ -155,6 +167,32 @@
 				391A9F0E2EAFDB5F0044FE3A /* RentSwipeUITests.swift */,
 			);
 			path = RentSwipeUITests;
+			sourceTree = "<group>";
+		};
+		394F9C932EB2BFF700585D09 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				394F9C8F2EB2B7FC00585D09 /* ChatThreadView.swift */,
+				392656C12EB113FB00D55080 /* SwipeDiscoveryView.swift */,
+				392656BB2EB05E4800D55080 /* LoginEntryView.swift */,
+				392656B92EB05E1A00D55080 /* SplashView.swift */,
+				394F9C872EB2A6D300585D09 /* ListingComparisonView.swift */,
+				394F9C852EB2A65E00585D09 /* FavouritesListView.swift */,
+				392656BF2EB0EC5E00D55080 /* UserSelectView.swift */,
+				391A9F012EAFDB0F0044FE3A /* Info.plist */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		394F9C952EB2C05400585D09 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				394F9C892EB2B6D000585D09 /* ChatModels.swift */,
+				394F9C8B2EB2B7CB00585D09 /* ChatStore.swift */,
+				394F9C8D2EB2B7E000585D09 /* ChatsHomeView.swift */,
+				394F9C912EB2B80800585D09 /* MessageBubble.swift */,
+			);
+			path = Chat;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -272,13 +310,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				391A9F002EAFDAEF0044FE3A /* ContentView.swift in Sources */,
+				394F9C8E2EB2B7E800585D09 /* ChatsHomeView.swift in Sources */,
 				392656BA2EB05E2200D55080 /* SplashView.swift in Sources */,
-				392656C22EB113FC00D55080 /* SwipeCardModel.swift in Sources */,
+				392656C22EB113FC00D55080 /* SwipeDiscoveryView.swift in Sources */,
+				394F9C8A2EB2B6D300585D09 /* ChatModels.swift in Sources */,
 				392656BC2EB05E4F00D55080 /* LoginEntryView.swift in Sources */,
+				394F9C902EB2B7FC00585D09 /* ChatThreadView.swift in Sources */,
+				394F9C8C2EB2B7CE00585D09 /* ChatStore.swift in Sources */,
 				392656BE2EB0EC4A00D55080 /* Models.swift in Sources */,
+				394F9C842EB2A65200585D09 /* FavouritesStore.swift in Sources */,
+				394F9C862EB2A66300585D09 /* FavouritesListView.swift in Sources */,
 				392656C02EB0EC6100D55080 /* UserSelectView.swift in Sources */,
 				391A9F062EAFDB0F0044FE3A /* PrototypeAuthentication.swift in Sources */,
 				391A9F072EAFDB0F0044FE3A /* RentSwipeApp.swift in Sources */,
+				394F9C882EB2A6D800585D09 /* ListingComparisonView.swift in Sources */,
+				394F9C922EB2B80800585D09 /* MessageBubble.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -18,7 +18,7 @@ enum SwipeDirection {
 // MARK: - Top-level swipe deck
 @available(iOS 16.4, *)
 struct SwipeDiscoveryView: View {
-
+    @EnvironmentObject private var favourites: FavouritesStore
     // deck of cards (front is index 0)
     @State private var cards: [SwipeCardModel]
 
@@ -26,6 +26,11 @@ struct SwipeDiscoveryView: View {
     @GestureState private var dragOffset: CGSize = .zero
     @State private var settledOffset: CGSize = .zero
     @State private var dragProgress: Double = 0
+    
+    // current horizontal drag
+    private var currentDragX: CGFloat {
+        dragOffset.width + settledOffset.width
+    }
 
     // "liked" popup
     @State private var likedCard: SwipeCardModel?
@@ -85,22 +90,29 @@ struct SwipeDiscoveryView: View {
 
     // MARK: - Top (draggable) card view
     private func topCard(_ card: SwipeCardModel, geo: GeometryProxy) -> some View {
-        CardDetailView(
-            listing: card.listing,
-            width: geo.size.width,
-            height: geo.size.height
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        ZStack {
+            CardDetailView(
+                listing: card.listing,
+                width: geo.size.width,
+                height: geo.size.height
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            
+            swipeAffordanceOverlay(width: geo.size.width)
+        }
         .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 8)
         .offset(x: dragOffset.width + settledOffset.width,
                 y: dragOffset.height + settledOffset.height)
         .rotationEffect(.degrees(
-            Double(-10 * (dragOffset.width + settledOffset.width) / 150.0)
+            Double((dragOffset.width + settledOffset.width) / 20.0)
         ))
+        
         .animation(.spring(response: 0.25, dampingFraction: 0.8),
                    value: dragOffset)
+        
+        //main drag logic
         .gesture(
-            DragGesture()
+            DragGesture(minimumDistance: 10)
                 .updating($dragOffset) { value, state, _ in
                     state = value.translation
                 }
@@ -113,12 +125,12 @@ struct SwipeDiscoveryView: View {
                     }
                 }
                 .onEnded { value in
-                    let translation = value.translation
+                    let totalX = value.translation.width + settledOffset.width
                     let widthThreshold = swipeDistanceTrigger * (geo.size.width * 0.9)
 
-                    if translation.width >= widthThreshold {
+                    if totalX >= widthThreshold {
                         swipeAndRemove(.right, card: card, geo: geo)
-                    } else if translation.width <= -widthThreshold {
+                    } else if totalX <= -widthThreshold {
                         swipeAndRemove(.left, card: card, geo: geo)
                     } else {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
@@ -187,11 +199,84 @@ struct SwipeDiscoveryView: View {
     private func removeCard(_ card: SwipeCardModel, direction: SwipeDirection) {
         guard let idx = cards.firstIndex(of: card) else { return }
 
-        if direction == .right {
-            likedCard = card
+        switch direction {
+        case .right:
+            // Favourite: remove cards from deck and show match sheet
+            favourites.add(card.listing)
+            likedCard = cards.remove(at: idx)
+        
+        case.left:
+            // Soft block: take it off front, push to back
+            let blocked = cards.remove(at: idx)
+            cards.append(blocked)
         }
-
-        cards.remove(at: idx)
+    }
+    
+    // TODO: Fix animation for swiping, make heart and x appear on swipe
+    // MARK: swipe animation of heart vs x
+    @ViewBuilder
+    private func swipeAffordanceOverlay(width: CGFloat) -> some View {
+        let x = currentDragX
+        
+        let normalized = min(1.0, abs(x) / 150.0)
+        let opacity = Double(normalized)
+        let scale: CGFloat = 0.8 + 0.4 * CGFloat(normalized)
+        
+        if x > 0 {
+            //Swiping RIGHT = favourite (heart)
+            VStack {
+                HStack{
+                    Spacer()
+                    badgeView(
+                        systemName: "heart.fill",
+                        text: "SAVE",
+                        color: .green
+                    )
+                    .scaleEffect(scale)
+                    .opacity(opacity)
+                }
+                Spacer()
+            }
+            .padding(32)
+            .transition(.opacity.combined(with: .scale))
+        } else if x < 0 {
+            //Swiping LEFT = delete (X)
+            VStack{
+                HStack{
+                    badgeView(
+                        systemName: "xmark.circle.fill",
+                        text: "HIDE",
+                        color: .red
+                    )
+                    .scaleEffect(scale)
+                    .opacity(opacity)
+                    Spacer()
+                }
+                Spacer()
+            }
+            .padding(32)
+            .transition(.opacity.combined(with: .scale))
+        } else {
+            EmptyView()
+        }
+    }
+    
+    // TODO: Fix animation for swiping, make heart and x appear on swipe
+    private func badgeView(systemName: String, text: String, color: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: systemName)
+                .font(.headline.bold())
+            Text(text)
+                .font(.headline.bold())
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(color.opacity(0.8))
+                .shadow(radius: 8)
+        )
     }
 }
 

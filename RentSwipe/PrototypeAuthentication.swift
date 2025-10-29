@@ -1,10 +1,3 @@
-//
-//  PrototypeAuthentication.swift
-//  RentSwipe
-//
-//  Created by Codex CLI.
-//
-
 import Foundation
 
 enum AuthenticationError: LocalizedError {

@@ -2,17 +2,17 @@ import SwiftUI
 @MainActor
 final class PrototypeSessionStore: ObservableObject {
     @Published private(set) var currentUser: PrototypeUser?
-
+    
     private let authService: PrototypeAuthenticating
-
+    
     init(authService: PrototypeAuthenticating = PrototypeLocalAuthService()) {
         self.authService = authService
     }
-
+    
     func login(email: String, password: String, role: AccountRole) throws {
         currentUser = try authService.authenticate(email: email, password: password, role: role)
     }
-
+    
     func logout() {
         currentUser = nil
     }
@@ -22,9 +22,12 @@ final class PrototypeSessionStore: ObservableObject {
 @main
 struct RentSwipeApp: App {
     @StateObject private var sessionStore = PrototypeSessionStore()
+    @StateObject private var favouritesStore = FavouritesStore()
+    @StateObject private var chatStore = ChatStore()
 
+    
     @State private var showSplash: Bool = true
-
+    
     var body: some Scene {
         WindowGroup {
             ZStack {
@@ -41,6 +44,8 @@ struct RentSwipeApp: App {
                     // user is logged in
                     PrototypeHomeView(user: sessionStore.currentUser!)
                         .environmentObject(sessionStore)
+                        .environmentObject(favouritesStore)
+                        .environmentObject(chatStore)
                 }
             }
         }
@@ -63,10 +68,12 @@ struct RentSwipeApp: App {
 @available(iOS 16.4, *)
 struct PrototypeHomeView: View {
     @EnvironmentObject private var sessionStore: PrototypeSessionStore
+    @EnvironmentObject private var chatStore: ChatStore
     let user: PrototypeUser
-
+    
     @State private var notifications: [AppNotification] = SampleData.notifications
-
+    
+    @available(iOS 16.4, *)
     var body: some View {
         TabView {
             if user.role == .tenant {
@@ -75,25 +82,55 @@ struct PrototypeHomeView: View {
                         .navigationTitle("Discover")
                         .toolbar{ logoutToolbar }
                 }
+                .tabItem {
+                    Label("Discover", systemImage: "magnifyingglass")
+                }
             }
             NavigationStack {
-                roleDashboard
-                    .navigationTitle(workspaceTitle)
-                    .toolbar { logoutToolbar }
+                if user.role == .tenant {
+                    if #available(iOS 17.0, *) {
+                        FavouritesListView()
+                            .toolbar { logoutToolbar }
+                            .navigationTitle("Favourites")
+                    } else {
+                        // Fallback on earlier versions
+                    }
+                } else {
+                    roleDashboard
+                        .navigationTitle(workspaceTitle)
+                        .toolbar { logoutToolbar }
+                }
             }
             .tabItem {
-                Label("Workspace", systemImage: "sparkles")
+                if user.role == .tenant {
+                    Label("Favourites", systemImage: "heart")
+                } else {
+                    Label("Workspace", systemImage: "sparkles")
+                }
             }
-
-            NavigationStack {
-                AnalyticsOverviewView(metrics: SampleData.analytics, role: user.role)
-                    .navigationTitle("Analytics")
-                    .toolbar { logoutToolbar }
+            if user.role == .admin {
+                NavigationStack {
+                    AnalyticsOverviewView(metrics: SampleData.analytics, role: user.role)
+                        .navigationTitle("Analytics")
+                        .toolbar { logoutToolbar }
+                }
+                .tabItem {
+                    Label("Analytics", systemImage: "chart.bar.xaxis")
+                }
+            } else {
+                // Tenants & landlords get Chats
+                NavigationStack {
+                    if #available(iOS 17.0, *) {
+                        ChatsHomeView()
+                            .navigationTitle("Chats")
+                            .toolbar { logoutToolbar }
+                    } else {
+                        // Fallback on earlier versions
+                    }
+                }
+                .tabItem { Label("Chats", systemImage: "bubble.left.and.bubble.right") }
             }
-            .tabItem {
-                Label("Analytics", systemImage: "chart.bar.xaxis")
-            }
-
+            
             NavigationStack {
                 NotificationCenterView(role: user.role, notifications: $notifications)
                     .navigationTitle("Inbox")
@@ -103,8 +140,9 @@ struct PrototypeHomeView: View {
                 Label("Inbox", systemImage: notifications.contains(where: { !$0.isRead }) ? "bell.badge.fill" : "bell")
             }
         }
+        .onAppear {chatStore.setCurrentUser(user)}
     }
-
+    
     private var workspaceTitle: String {
         switch user.role {
         case .tenant:
@@ -115,7 +153,7 @@ struct PrototypeHomeView: View {
             return "Admin Control"
         }
     }
-
+    
     @ToolbarContentBuilder
     private var logoutToolbar: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -126,7 +164,7 @@ struct PrototypeHomeView: View {
             }
         }
     }
-
+    
     @ViewBuilder
     private var roleDashboard: some View {
         switch user.role {
@@ -149,17 +187,18 @@ struct TenantDashboardView: View {
     @State private var filters: TenantPreferenceProfile = TenantPreferenceProfile()
     @State private var roommateMatches: [RoommateMatch] = SampleData.roommateMatches
     @State private var viewingRequests: [ViewingRequest] = SampleData.viewingRequests
-
+    
     @State private var showFilters: Bool = false
     @State private var selectedListing: RentalListing?
-
+    
+    
     private let priceFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "CAD"
         return formatter
     }()
-
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 28) {
@@ -181,7 +220,7 @@ struct TenantDashboardView: View {
             ListingDetailSheet(listing: listing)
         }
     }
-
+    
     private var discoveryHeader: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -192,9 +231,9 @@ struct TenantDashboardView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Spacer()
-
+                
                 Button {
                     showFilters = true
                 } label: {
@@ -205,9 +244,9 @@ struct TenantDashboardView: View {
                         .background(Color(.systemGray5), in: Capsule())
                 }
             }
-
+            
             filterSummary
-
+            
             if !dismissed.isEmpty {
                 Text("Snoozed \(dismissed.count) listings — we'll refresh once landlords update details.")
                     .font(.caption)
@@ -215,7 +254,7 @@ struct TenantDashboardView: View {
             }
         }
     }
-
+    
     private var discoveryCard: some View {
         VStack(spacing: 16) {
             if let listing = discoveryQueue.first {
@@ -223,7 +262,7 @@ struct TenantDashboardView: View {
                     .onTapGesture {
                         selectedListing = listing
                     }
-
+                
                 HStack(spacing: 16) {
                     Button(role: .destructive) {
                         pass(listing)
@@ -234,7 +273,7 @@ struct TenantDashboardView: View {
                             .padding()
                             .background(Color.red.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
-
+                    
                     Button {
                         favorite(listing)
                     } label: {
@@ -262,7 +301,7 @@ struct TenantDashboardView: View {
             }
         }
     }
-
+    
     private var favoritesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -275,7 +314,7 @@ struct TenantDashboardView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-
+            
             if favorites.isEmpty {
                 Text("Swipe right on a listing to keep it handy for tours and roommate invites.")
                     .font(.subheadline)
@@ -292,16 +331,16 @@ struct TenantDashboardView: View {
             }
         }
     }
-
+    
     private var roommateSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Find a Homie")
                 .font(.title3.weight(.semibold))
-
+            
             Text("High-confidence roommate matches based on lifestyle fit and shared interests.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-
+            
             VStack(spacing: 12) {
                 ForEach(roommateMatches) { match in
                     RoommateMatchCard(match: match)
@@ -309,12 +348,12 @@ struct TenantDashboardView: View {
             }
         }
     }
-
+    
     private var viewingRequestsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Viewing Requests")
                 .font(.title3.weight(.semibold))
-
+            
             if viewingRequests.isEmpty {
                 Text("Tap a favorite to schedule a tour. Landlords respond in under 4 hours on average.")
                     .font(.subheadline)
@@ -328,26 +367,26 @@ struct TenantDashboardView: View {
             }
         }
     }
-
+    
     private var filterSummary: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Up to \(priceFormatter.string(from: NSNumber(value: filters.maxPrice)) ?? "$0") • Minimum \(filters.minBedrooms) BR")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-
+            
             HStack(spacing: 8) {
                 Label(filters.commutePriority.description, systemImage: "figure.walk")
                     .font(.caption)
                     .padding(8)
                     .background(Color(.systemGray6), in: Capsule())
-
+                
                 if filters.allowPets {
                     Label("Pets welcome", systemImage: "pawprint.fill")
                         .font(.caption)
                         .padding(8)
                         .background(Color(.systemGray6), in: Capsule())
                 }
-
+                
                 ForEach(Array(filters.mustHaveAmenities.prefix(2)), id: \.self) { amenity in
                     Label(amenity.label, systemImage: amenity.icon)
                         .font(.caption)
@@ -357,13 +396,13 @@ struct TenantDashboardView: View {
             }
         }
     }
-
+    
     private func pass(_ listing: RentalListing) {
         guard let index = discoveryQueue.firstIndex(of: listing) else { return }
         dismissed.append(listing)
         discoveryQueue.remove(at: index)
     }
-
+    
     private func favorite(_ listing: RentalListing) {
         guard let index = discoveryQueue.firstIndex(of: listing) else { return }
         if !favorites.contains(listing) {
@@ -375,14 +414,14 @@ struct TenantDashboardView: View {
 
 private struct ListingCardView: View {
     let listing: RentalListing
-
+    
     private let priceFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
         return formatter
     }()
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -393,9 +432,9 @@ private struct ListingCardView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Spacer()
-
+                
                 VStack(alignment: .trailing) {
                     Text(priceFormatter.string(from: NSNumber(value: listing.pricePerMonth)) ?? "$0")
                         .font(.headline)
@@ -404,7 +443,7 @@ private struct ListingCardView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-
+            
             HStack(spacing: 12) {
                 Label("\(listing.bedrooms) bd", systemImage: "bed.double.fill")
                 Label(String(format: "%.1f ba", listing.bathrooms), systemImage: "shower")
@@ -412,7 +451,7 @@ private struct ListingCardView: View {
             }
             .font(.caption.weight(.medium))
             .foregroundStyle(.secondary)
-
+            
             HStack(spacing: 8) {
                 ForEach(listing.amenities.prefix(4), id: \.self) { amenity in
                     Label(amenity.label, systemImage: amenity.icon)
@@ -422,12 +461,12 @@ private struct ListingCardView: View {
                         .background(Color(.systemGray6), in: Capsule())
                 }
             }
-
+            
             HStack {
                 Label(String(format: "%.1f", listing.rating), systemImage: "star.fill")
                     .font(.caption.weight(.semibold))
                     .foregroundColor(.yellow)
-
+                
                 if listing.isVerified {
                     Label("Verified", systemImage: "checkmark.seal.fill")
                         .font(.caption.weight(.semibold))
@@ -445,7 +484,7 @@ private struct ListingCardView: View {
 private struct FavoriteListingRow: View {
     let listing: RentalListing
     let formatter: NumberFormatter
-
+    
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: listing.photoNames[0])
@@ -454,7 +493,7 @@ private struct FavoriteListingRow: View {
                 .frame(width: 44, height: 44)
                 .padding(12)
                 .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(listing.title)
                     .font(.headline)
@@ -462,9 +501,9 @@ private struct FavoriteListingRow: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-
+            
             Spacer()
-
+            
             VStack(alignment: .trailing, spacing: 4) {
                 Text(formatter.string(from: NSNumber(value: listing.pricePerMonth)) ?? "$0")
                     .font(.subheadline.weight(.semibold))
@@ -481,7 +520,7 @@ private struct FavoriteListingRow: View {
 
 private struct RoommateMatchCard: View {
     let match: RoommateMatch
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -492,18 +531,18 @@ private struct RoommateMatchCard: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Spacer()
-
+                
                 Label("\(match.matchScore)%", systemImage: "heart.circle.fill")
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(.pink)
             }
-
+            
             Text("Shared interests: \(match.interests.joined(separator: ", "))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             ProgressView(value: Double(match.matchScore) / 100.0)
                 .tint(.pink)
         }
@@ -515,14 +554,14 @@ private struct RoommateMatchCard: View {
 
 private struct ViewingRequestCard: View {
     let request: ViewingRequest
-
+    
     private let formatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter
     }()
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -531,15 +570,15 @@ private struct ViewingRequestCard: View {
                 Spacer()
                 statusBadge
             }
-
+            
             Label("Host: \(request.landlordName)", systemImage: "person.crop.circle")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             Label(formatter.string(from: request.scheduledFor), systemImage: "calendar")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             Label("Coordinating via \(request.communicationChannel)", systemImage: "bubble.right")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -548,7 +587,7 @@ private struct ViewingRequestCard: View {
         .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
     }
-
+    
     private var statusBadge: some View {
         Text(request.status.rawValue)
             .font(.caption.weight(.semibold))
@@ -557,7 +596,7 @@ private struct ViewingRequestCard: View {
             .background(badgeColor.opacity(0.15), in: Capsule())
             .foregroundColor(badgeColor)
     }
-
+    
     private var badgeColor: Color {
         switch request.status {
         case .pendingConfirmation:
@@ -572,14 +611,14 @@ private struct ViewingRequestCard: View {
 
 private struct ListingDetailSheet: View {
     let listing: RentalListing
-
+    
     private let priceFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
         return formatter
     }()
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -591,9 +630,9 @@ private struct ListingDetailSheet: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
-
+                    
                     Spacer()
-
+                    
                     VStack(alignment: .trailing, spacing: 4) {
                         Text(priceFormatter.string(from: NSNumber(value: listing.pricePerMonth)) ?? "$0")
                             .font(.title3.weight(.bold))
@@ -602,7 +641,7 @@ private struct ListingDetailSheet: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-
+                
                 HStack(spacing: 16) {
                     Label("\(listing.bedrooms) bedrooms", systemImage: "bed.double")
                     Label(String(format: "%.1f baths", listing.bathrooms), systemImage: "shower")
@@ -610,11 +649,11 @@ private struct ListingDetailSheet: View {
                 }
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-
+                
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Amenities")
                         .font(.headline)
-
+                    
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
                         ForEach(listing.amenities, id: \.self) { amenity in
                             HStack {
@@ -628,15 +667,15 @@ private struct ListingDetailSheet: View {
                         }
                     }
                 }
-
+                
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Verification & Ratings")
                         .font(.headline)
-
+                    
                     HStack(spacing: 12) {
                         Label(String(format: "%.1f / 5", listing.rating), systemImage: "star.fill")
                             .foregroundColor(.yellow)
-
+                        
                         if listing.isVerified {
                             Label("Verified by RentSwipe", systemImage: "checkmark.seal.fill")
                                 .foregroundColor(.green)
@@ -656,7 +695,7 @@ private struct ListingDetailSheet: View {
 private struct TenantFilterSheet: View {
     @Binding var filters: TenantPreferenceProfile
     @Environment(\.dismiss) private var dismiss
-
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -665,14 +704,14 @@ private struct TenantFilterSheet: View {
                         Text("Max monthly rent: $\(filters.maxPrice)")
                     }
                 }
-
+                
                 Section("Layout") {
                     Stepper(value: $filters.minBedrooms, in: 0...5) {
                         Text("Minimum bedrooms: \(filters.minBedrooms)")
                     }
                     Toggle("Pets allowed", isOn: $filters.allowPets)
                 }
-
+                
                 Section("Commute priority") {
                     Picker("Commute", selection: $filters.commutePriority) {
                         ForEach(TenantPreferenceProfile.CommutePriority.allCases) { priority in
@@ -681,7 +720,7 @@ private struct TenantFilterSheet: View {
                     }
                     .pickerStyle(.inline)
                 }
-
+                
                 Section("Must-have amenities") {
                     ForEach(ListingAmenity.allCases) { amenity in
                         Toggle(isOn: Binding(
@@ -706,7 +745,7 @@ private struct TenantFilterSheet: View {
                         filters = TenantPreferenceProfile()
                     }
                 }
-
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
@@ -723,7 +762,7 @@ struct LandlordConsoleView: View {
     @State private var properties: [LandlordProperty] = SampleData.landlordProperties
     @State private var leads: [TenantLead] = SampleData.tenantLeads
     @State private var verificationTasks: [VerificationTask] = SampleData.verificationQueue
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
@@ -736,7 +775,7 @@ struct LandlordConsoleView: View {
         }
         .background(Color(.systemGroupedBackground))
     }
-
+    
     private var portfolioSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -747,7 +786,7 @@ struct LandlordConsoleView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-
+            
             VStack(spacing: 16) {
                 ForEach($properties) { $property in
                     LandlordPropertyCard(property: $property)
@@ -755,12 +794,12 @@ struct LandlordConsoleView: View {
             }
         }
     }
-
+    
     private var leadsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Tenant Pipeline")
                 .font(.title3.weight(.semibold))
-
+            
             VStack(spacing: 14) {
                 ForEach($leads) { $lead in
                     TenantLeadCard(lead: $lead)
@@ -768,16 +807,16 @@ struct LandlordConsoleView: View {
             }
         }
     }
-
+    
     private var complianceSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Verification & Compliance")
                 .font(.title3.weight(.semibold))
-
+            
             Text("Track verification progress to keep listings at the top of tenant searches.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-
+            
             VStack(spacing: 12) {
                 ForEach($verificationTasks) { $task in
                     VerificationTaskRow(task: $task)
@@ -789,14 +828,14 @@ struct LandlordConsoleView: View {
 
 private struct LandlordPropertyCard: View {
     @Binding var property: LandlordProperty
-
+    
     private let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
         return formatter
     }()
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
@@ -807,9 +846,9 @@ private struct LandlordPropertyCard: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Spacer()
-
+                
                 Menu {
                     ForEach([LandlordProperty.Status.live, .pending, .needsAttention, .draft], id: \.self) { status in
                         Button(status.rawValue) {
@@ -820,7 +859,7 @@ private struct LandlordPropertyCard: View {
                     StatusBadge(text: property.status.rawValue, color: color(for: property.status))
                 }
             }
-
+            
             HStack(spacing: 16) {
                 Label("Rent: \(formatter.string(from: NSNumber(value: property.rent)) ?? "$0")", systemImage: "dollarsign")
                 Label("Beds: \(property.beds)", systemImage: "bed.double")
@@ -828,12 +867,12 @@ private struct LandlordPropertyCard: View {
             }
             .font(.caption)
             .foregroundStyle(.secondary)
-
+            
             HStack {
                 MetricPill(title: "Inquiries", value: "\(property.inquiriesThisWeek) /wk", color: .teal)
                 MetricPill(title: "Favorites", value: "\(property.favorites)", color: .indigo)
             }
-
+            
             VStack(alignment: .leading, spacing: 6) {
                 Text("Verification progress")
                     .font(.caption.weight(.medium))
@@ -846,7 +885,7 @@ private struct LandlordPropertyCard: View {
         .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 10, y: 6)
     }
-
+    
     private func color(for status: LandlordProperty.Status) -> Color {
         switch status {
         case .live:
@@ -863,13 +902,13 @@ private struct LandlordPropertyCard: View {
 
 private struct TenantLeadCard: View {
     @Binding var lead: TenantLead
-
+    
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter
     }()
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
@@ -880,26 +919,26 @@ private struct TenantLeadCard: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Spacer()
-
+                
                 StatusBadge(text: lead.stage.rawValue, color: stageColor(lead.stage))
             }
-
+            
             Label("Target move-in: \(dateFormatter.string(from: lead.moveInDate))", systemImage: "calendar")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             Text(lead.notes)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             HStack {
                 Button("Advance Stage") {
                     advanceStage()
                 }
                 .buttonStyle(.borderedProminent)
-
+                
                 Button("Send Follow-up") {
                     // placeholder action
                 }
@@ -910,7 +949,7 @@ private struct TenantLeadCard: View {
         .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
     }
-
+    
     private func advanceStage() {
         switch lead.stage {
         case .new:
@@ -923,7 +962,7 @@ private struct TenantLeadCard: View {
             break
         }
     }
-
+    
     private func stageColor(_ stage: TenantLead.Stage) -> Color {
         switch stage {
         case .new:
@@ -940,14 +979,14 @@ private struct TenantLeadCard: View {
 
 private struct VerificationTaskRow: View {
     @Binding var task: VerificationTask
-
+    
     private let formatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter
     }()
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -958,9 +997,9 @@ private struct VerificationTaskRow: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Spacer()
-
+                
                 Menu {
                     ForEach([VerificationTask.Status.queued, .inProgress, .blocked, .complete], id: \.self) { status in
                         Button(status.rawValue) {
@@ -971,15 +1010,15 @@ private struct VerificationTaskRow: View {
                     StatusBadge(text: task.status.rawValue, color: statusColor(task.status))
                 }
             }
-
+            
             Label("Submitted \(formatter.string(from: task.submittedAt))", systemImage: "clock")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             Label(task.taskType.rawValue, systemImage: "doc.text")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             Text(task.notes)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -988,7 +1027,7 @@ private struct VerificationTaskRow: View {
         .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
     }
-
+    
     private func statusColor(_ status: VerificationTask.Status) -> Color {
         switch status {
         case .queued:
@@ -1006,7 +1045,7 @@ private struct VerificationTaskRow: View {
 private struct StatusBadge: View {
     let text: String
     let color: Color
-
+    
     var body: some View {
         Text(text)
             .font(.caption.weight(.semibold))
@@ -1021,7 +1060,7 @@ private struct MetricPill: View {
     let title: String
     let value: String
     let color: Color
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title.uppercased())
@@ -1043,7 +1082,7 @@ struct AdminConsoleView: View {
     @State private var moderationReports: [ModerationReport] = SampleData.moderationReports
     @State private var featureFlags: [FeatureFlag] = SampleData.featureFlags
     @State private var roommateMatches: [RoommateMatch] = SampleData.roommateMatches
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
@@ -1057,12 +1096,12 @@ struct AdminConsoleView: View {
         }
         .background(Color(.systemGroupedBackground))
     }
-
+    
     private var verificationSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Verification Ops")
                 .font(.title2.weight(.semibold))
-
+            
             VStack(spacing: 12) {
                 ForEach($verificationQueue) { $task in
                     VerificationTaskRow(task: $task)
@@ -1070,12 +1109,12 @@ struct AdminConsoleView: View {
             }
         }
     }
-
+    
     private var moderationSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Trust & Safety")
                 .font(.title3.weight(.semibold))
-
+            
             VStack(spacing: 12) {
                 ForEach($moderationReports) { $report in
                     ModerationReportRow(report: $report)
@@ -1083,12 +1122,12 @@ struct AdminConsoleView: View {
             }
         }
     }
-
+    
     private var featureFlagSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Feature Flags")
                 .font(.title3.weight(.semibold))
-
+            
             ForEach($featureFlags) { $flag in
                 Toggle(isOn: $flag.isEnabled) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -1106,16 +1145,16 @@ struct AdminConsoleView: View {
             }
         }
     }
-
+    
     private var roommateQualitySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Roommate Match QA")
                 .font(.title3.weight(.semibold))
-
+            
             Text("Spot-check top matches before enabling for new regions.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-
+            
             VStack(spacing: 12) {
                 ForEach(roommateMatches) { match in
                     RoommateQAResult(match: match)
@@ -1127,14 +1166,14 @@ struct AdminConsoleView: View {
 
 private struct ModerationReportRow: View {
     @Binding var report: ModerationReport
-
+    
     private let formatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter
     }()
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -1143,15 +1182,15 @@ private struct ModerationReportRow: View {
                 Spacer()
                 StatusBadge(text: report.severity.rawValue.capitalized, color: severityColor(report.severity))
             }
-
+            
             Label("Reported by \(report.reportedBy)", systemImage: "person.fill.questionmark")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             Text("Submitted \(formatter.string(from: report.submittedAt))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             Toggle("Resolved", isOn: $report.resolved)
                 .toggleStyle(SwitchToggleStyle(tint: .green))
         }
@@ -1159,7 +1198,7 @@ private struct ModerationReportRow: View {
         .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
     }
-
+    
     private func severityColor(_ severity: ModerationReport.Severity) -> Color {
         switch severity {
         case .low:
@@ -1176,7 +1215,7 @@ private struct ModerationReportRow: View {
 
 private struct RoommateQAResult: View {
     let match: RoommateMatch
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -1187,11 +1226,11 @@ private struct RoommateQAResult: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-
+            
             Text("Review shared interests: \(match.interests.joined(separator: ", "))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             ProgressView(value: Double(match.matchScore) / 100.0) {
                 Text("Confidence")
                     .font(.caption)
@@ -1209,20 +1248,20 @@ private struct RoommateQAResult: View {
 struct AnalyticsOverviewView: View {
     let metrics: [AnalyticsMetric]
     let role: AccountRole
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Real-time health across swipe engagement, trust & safety, and supply.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-
+                
                 VStack(spacing: 16) {
                     ForEach(metrics) { metric in
                         AnalyticsMetricCard(metric: metric)
                     }
                 }
-
+                
                 focusCallout
             }
             .padding(.vertical, 24)
@@ -1230,7 +1269,7 @@ struct AnalyticsOverviewView: View {
         }
         .background(Color(.systemGroupedBackground))
     }
-
+    
     @ViewBuilder
     private var focusCallout: some View {
         switch role {
@@ -1246,7 +1285,7 @@ struct AnalyticsOverviewView: View {
 
 private struct AnalyticsMetricCard: View {
     let metric: AnalyticsMetric
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -1255,10 +1294,10 @@ private struct AnalyticsMetricCard: View {
                 Spacer()
                 deltaBadge
             }
-
+            
             Text(formattedValue)
                 .font(.system(size: 28, weight: .bold, design: .rounded))
-
+            
             ProgressView(value: normalizedValue)
                 .tint(metric.delta >= 0 ? .green : .red)
         }
@@ -1266,7 +1305,7 @@ private struct AnalyticsMetricCard: View {
         .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
     }
-
+    
     private var formattedValue: String {
         if metric.unit == "rate" {
             return String(format: "%.0f%%", metric.value * 100)
@@ -1276,7 +1315,7 @@ private struct AnalyticsMetricCard: View {
             return String(format: "%.0f", metric.value)
         }
     }
-
+    
     private var normalizedValue: Double {
         switch metric.unit {
         case "rate":
@@ -1287,7 +1326,7 @@ private struct AnalyticsMetricCard: View {
             return min(metric.value / 1500.0, 1.0)
         }
     }
-
+    
     private var deltaBadge: some View {
         HStack(spacing: 4) {
             Image(systemName: metric.delta >= 0 ? "arrow.up" : "arrow.down")
@@ -1305,13 +1344,13 @@ private struct CalloutCard: View {
     let title: String
     let message: String
     let icon: String
-
+    
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(.accentColor)
-
+            
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.headline)
@@ -1329,13 +1368,13 @@ private struct CalloutCard: View {
 struct NotificationCenterView: View {
     let role: AccountRole
     @Binding var notifications: [AppNotification]
-
+    
     private let relativeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter
     }()
-
+    
     var body: some View {
         List {
             Section(header: Text("\(role.displayLabel) updates")) {
@@ -1343,7 +1382,7 @@ struct NotificationCenterView: View {
                     NotificationRow(notification: $notification, formatter: relativeFormatter)
                 }
             }
-
+            
             Section("Actions") {
                 Button("Mark all as read") {
                     for index in notifications.indices {
@@ -1367,13 +1406,13 @@ struct NotificationCenterView: View {
 private struct NotificationRow: View {
     @Binding var notification: AppNotification
     let formatter: RelativeDateTimeFormatter
-
+    
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
                 .font(.title3)
                 .foregroundColor(notification.isCritical ? .red : .accentColor)
-
+            
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(notification.title)
@@ -1383,11 +1422,11 @@ private struct NotificationRow: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Text(notification.message)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-
+                
                 if !notification.isRead {
                     Button("Mark as read") {
                         notification.isRead = true
@@ -1398,7 +1437,7 @@ private struct NotificationRow: View {
         }
         .padding(.vertical, 8)
     }
-
+    
     private var icon: String {
         switch notification.category {
         case .swipe:

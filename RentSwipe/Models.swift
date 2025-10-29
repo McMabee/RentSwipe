@@ -225,6 +225,7 @@ struct TenantLead: Identifiable {
     let moveInDate: Date
     var stage: Stage
     let notes: String
+    let listingTitle: String
 }
 
 // MARK: - Admin domain models
@@ -412,21 +413,24 @@ enum SampleData {
             email: "jessie.lee@mockmail.com",
             moveInDate: Calendar.current.date(byAdding: .day, value: 18, to: Date()) ?? Date(),
             stage: .preQualified,
-            notes: "Shared proof of funds. Prefers weekday evening tours."
+            notes: "Shared proof of funds. Prefers weekday evening tours.",
+            listingTitle: "Maple Street Flats"
         ),
         TenantLead(
             name: "Marcus Grant",
             email: "marcus.grant@mockmail.com",
             moveInDate: Calendar.current.date(byAdding: .day, value: 35, to: Date()) ?? Date(),
             stage: .scheduledTour,
-            notes: "Tour booked for next Tuesday at 5pm."
+            notes: "Tour booked for next Tuesday at 5pm.",
+            listingTitle: "Lakeview Apartments"
         ),
         TenantLead(
             name: "Emily Carter",
             email: "emily.carter@mockmail.com",
             moveInDate: Calendar.current.date(byAdding: .day, value: 60, to: Date()) ?? Date(),
             stage: .new,
-            notes: "Interested in Maple Street Flats. Asked about pet policy."
+            notes: "Interested in Maple Street Flats. Asked about pet policy.",
+            listingTitle: "Maple Street Flats"
         )
     ]
 
