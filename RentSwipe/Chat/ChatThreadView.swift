@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ChatThreadView: View {
     @EnvironmentObject private var chat: ChatStore
+    @EnvironmentObject private var router: AppRouter
     let threadID: UUID
     let title: String
 
@@ -53,5 +54,29 @@ struct ChatThreadView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    handleBack()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                }
+            }
+        }
+    }
+
+    private func handleBack() {
+        switch router.chatLaunchSource {
+        case .listing:
+            router.selectedTab = .home
+            router.clearChatDeepLink()
+        case .none:
+            // default behavior: just pop
+            // the system back button will handle this, but we keep symmetry
+            router.clearChatDeepLink()
+        }
     }
 }

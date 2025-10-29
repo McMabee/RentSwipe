@@ -192,7 +192,7 @@ struct ViewingRequest: Identifiable {
 // MARK: - Landlord domain models
 
 struct LandlordProperty: Identifiable {
-    enum Status: String {
+    enum Status: String, Codable, CaseIterable {
         case draft = "Draft"
         case pending = "Pending Review"
         case live = "Live"
@@ -206,9 +206,7 @@ struct LandlordProperty: Identifiable {
     let beds: Int
     let baths: Double
     var status: Status
-    var inquiriesThisWeek: Int
-    var favorites: Int
-    var verificationProgress: Double
+    var analytics: ListingAnalytics
 }
 
 struct TenantLead: Identifiable {
@@ -226,6 +224,13 @@ struct TenantLead: Identifiable {
     var stage: Stage
     let notes: String
     let listingTitle: String
+}
+
+struct ListingAnalytics: Codable, Hashable {
+    var views: Int
+    var favourites: Int
+    var chatThreadID: UUID?      // one linked chat thread for prototype
+    var inquiriesThisWeek: Int
 }
 
 // MARK: - Admin domain models
@@ -305,6 +310,8 @@ struct AppNotification: Identifiable {
 // MARK: - Sample data used across prototype views
 
 enum SampleData {
+    static let demoChatThreadID = UUID()
+    
     static let roommateMatches: [RoommateMatch] = [
         RoommateMatch(name: "Amina Patel", major: "Computer Science", matchScore: 92, interests: ["Hackathons", "Farmers markets"]),
         RoommateMatch(name: "Leo Martinez", major: "Architecture", matchScore: 88, interests: ["Cycling", "Photography"]),
@@ -362,9 +369,7 @@ enum SampleData {
             beds: 2,
             baths: 1.5,
             status: .live,
-            inquiriesThisWeek: 12,
-            favorites: 58,
-            verificationProgress: 1.0
+            analytics: .init(views: 142, favourites: 19, chatThreadID: demoChatThreadID, inquiriesThisWeek: 6)
         ),
         LandlordProperty(
             title: "Lakeview Apartments",
@@ -373,9 +378,7 @@ enum SampleData {
             beds: 1,
             baths: 1,
             status: .pending,
-            inquiriesThisWeek: 5,
-            favorites: 23,
-            verificationProgress: 0.65
+            analytics: .init(views: 67, favourites: 7, chatThreadID: nil, inquiriesThisWeek: 12)
         ),
         LandlordProperty(
             title: "Campus Row Homes",
@@ -384,9 +387,7 @@ enum SampleData {
             beds: 3,
             baths: 2,
             status: .needsAttention,
-            inquiriesThisWeek: 2,
-            favorites: 14,
-            verificationProgress: 0.3
+            analytics: .init(views: 5, favourites: 0, chatThreadID: nil, inquiriesThisWeek: 0)
         )
     ]
 

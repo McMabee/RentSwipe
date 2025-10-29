@@ -26,6 +26,7 @@
 		394F9C8E2EB2B7E800585D09 /* ChatsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C8D2EB2B7E000585D09 /* ChatsHomeView.swift */; };
 		394F9C902EB2B7FC00585D09 /* ChatThreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C8F2EB2B7FC00585D09 /* ChatThreadView.swift */; };
 		394F9C922EB2B80800585D09 /* MessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C912EB2B80800585D09 /* MessageBubble.swift */; };
+		394F9C972EB2C63000585D09 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394F9C962EB2C62C00585D09 /* AppRouter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +73,7 @@
 		394F9C8D2EB2B7E000585D09 /* ChatsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsHomeView.swift; sourceTree = "<group>"; };
 		394F9C8F2EB2B7FC00585D09 /* ChatThreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatThreadView.swift; sourceTree = "<group>"; };
 		394F9C912EB2B80800585D09 /* MessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubble.swift; sourceTree = "<group>"; };
+		394F9C962EB2C62C00585D09 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +124,8 @@
 				391A9F032EAFDB0F0044FE3A /* Preview Content */,
 				391A9F042EAFDB0F0044FE3A /* PrototypeAuthentication.swift */,
 				391A9F052EAFDB0F0044FE3A /* RentSwipeApp.swift */,
+				394F9C962EB2C62C00585D09 /* AppRouter.swift */,
+				391A9F012EAFDB0F0044FE3A /* Info.plist */,
 				394F9C932EB2BFF700585D09 /* Views */,
 			);
 			path = RentSwipe;
@@ -172,14 +176,12 @@
 		394F9C932EB2BFF700585D09 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				394F9C8F2EB2B7FC00585D09 /* ChatThreadView.swift */,
 				392656C12EB113FB00D55080 /* SwipeDiscoveryView.swift */,
 				392656BB2EB05E4800D55080 /* LoginEntryView.swift */,
 				392656B92EB05E1A00D55080 /* SplashView.swift */,
 				394F9C872EB2A6D300585D09 /* ListingComparisonView.swift */,
 				394F9C852EB2A65E00585D09 /* FavouritesListView.swift */,
 				392656BF2EB0EC5E00D55080 /* UserSelectView.swift */,
-				391A9F012EAFDB0F0044FE3A /* Info.plist */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -187,6 +189,7 @@
 		394F9C952EB2C05400585D09 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				394F9C8F2EB2B7FC00585D09 /* ChatThreadView.swift */,
 				394F9C892EB2B6D000585D09 /* ChatModels.swift */,
 				394F9C8B2EB2B7CB00585D09 /* ChatStore.swift */,
 				394F9C8D2EB2B7E000585D09 /* ChatsHomeView.swift */,
@@ -324,6 +327,7 @@
 				391A9F062EAFDB0F0044FE3A /* PrototypeAuthentication.swift in Sources */,
 				391A9F072EAFDB0F0044FE3A /* RentSwipeApp.swift in Sources */,
 				394F9C882EB2A6D800585D09 /* ListingComparisonView.swift in Sources */,
+				394F9C972EB2C63000585D09 /* AppRouter.swift in Sources */,
 				394F9C922EB2B80800585D09 /* MessageBubble.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

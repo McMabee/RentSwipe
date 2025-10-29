@@ -24,6 +24,7 @@ struct RentSwipeApp: App {
     @StateObject private var sessionStore = PrototypeSessionStore()
     @StateObject private var favouritesStore = FavouritesStore()
     @StateObject private var chatStore = ChatStore()
+    @StateObject private var router = AppRouter()
 
     
     @State private var showSplash: Bool = true
@@ -46,6 +47,7 @@ struct RentSwipeApp: App {
                         .environmentObject(sessionStore)
                         .environmentObject(favouritesStore)
                         .environmentObject(chatStore)
+                        .environmentObject(router)
                 }
             }
         }
@@ -69,13 +71,14 @@ struct RentSwipeApp: App {
 struct PrototypeHomeView: View {
     @EnvironmentObject private var sessionStore: PrototypeSessionStore
     @EnvironmentObject private var chatStore: ChatStore
+    @EnvironmentObject private var router: AppRouter
     let user: PrototypeUser
     
     @State private var notifications: [AppNotification] = SampleData.notifications
     
     @available(iOS 16.4, *)
     var body: some View {
-        TabView {
+        TabView(selection: $router.selectedTab) {
             if user.role == .tenant {
                 NavigationStack{
                     SwipeDiscoveryView(listings: SampleData.tenantListings)
@@ -85,6 +88,7 @@ struct PrototypeHomeView: View {
                 .tabItem {
                     Label("Discover", systemImage: "magnifyingglass")
                 }
+                .tag(AppRouter.Tab.discover)
             }
             NavigationStack {
                 if user.role == .tenant {
@@ -97,7 +101,7 @@ struct PrototypeHomeView: View {
                     }
                 } else {
                     roleDashboard
-                        .navigationTitle(workspaceTitle)
+                        .navigationTitle("Home")
                         .toolbar { logoutToolbar }
                 }
             }
@@ -105,9 +109,11 @@ struct PrototypeHomeView: View {
                 if user.role == .tenant {
                     Label("Favourites", systemImage: "heart")
                 } else {
-                    Label("Workspace", systemImage: "sparkles")
+                    Label("Home", systemImage: "house")
                 }
             }
+            .tag(AppRouter.Tab.home)
+            
             if user.role == .admin {
                 NavigationStack {
                     AnalyticsOverviewView(metrics: SampleData.analytics, role: user.role)
@@ -129,6 +135,7 @@ struct PrototypeHomeView: View {
                     }
                 }
                 .tabItem { Label("Chats", systemImage: "bubble.left.and.bubble.right") }
+                .tag(AppRouter.Tab.chats)
             }
             
             NavigationStack {
@@ -148,7 +155,7 @@ struct PrototypeHomeView: View {
         case .tenant:
             return "Tenant Workspace"
         case .landlord:
-            return "Landlord Console"
+            return "Home"
         case .admin:
             return "Admin Control"
         }
@@ -171,7 +178,7 @@ struct PrototypeHomeView: View {
         case .tenant:
             TenantDashboardView()
         case .landlord:
-            LandlordConsoleView()
+            LandlordHomeView()
         case .admin:
             AdminConsoleView()
         }
@@ -418,7 +425,7 @@ private struct ListingCardView: View {
     private let priceFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
+        formatter.currencyCode = "CAD"
         return formatter
     }()
     
@@ -615,7 +622,7 @@ private struct ListingDetailSheet: View {
     private let priceFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
+        formatter.currencyCode = "CAD"
         return formatter
     }()
     
@@ -756,75 +763,444 @@ private struct TenantFilterSheet: View {
     }
 }
 
-// MARK: - Landlord Console
+// MARK: - Landlord Home
 
-struct LandlordConsoleView: View {
+struct LandlordHomeView: View {
     @State private var properties: [LandlordProperty] = SampleData.landlordProperties
     @State private var leads: [TenantLead] = SampleData.tenantLeads
-    @State private var verificationTasks: [VerificationTask] = SampleData.verificationQueue
-    
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                portfolioSection
-                leadsSection
-                complianceSection
-            }
-            .padding(.vertical, 24)
-            .padding(.horizontal, 20)
-        }
-        .background(Color(.systemGroupedBackground))
-    }
-    
-    private var portfolioSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Portfolio Performance")
-                    .font(.title2.weight(.semibold))
-                Spacer()
-                Text("Avg. response time: 2.1 hrs")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            
-            VStack(spacing: 16) {
-                ForEach($properties) { $property in
-                    LandlordPropertyCard(property: $property)
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Listings overview (compact)
+                    SectionCard(title: "Listings") {
+                        VStack(spacing: 12) {
+                            ForEach(properties.prefix(3)) { p in
+                                ListingChipRow(
+                                    title: p.title,
+                                    statusText: p.status.rawValue,
+                                    statusColor: color(for: p.status)
+                                )
+                            }
+                            NavigationLink {
+                                ListingsListView(properties: properties)
+                            } label: {
+                                SectionSeeAllRow()
+                            }
+                        }
+                    }
+
+                    // Tenant pipeline (max 3)
+                    SectionCard(title: "Tenant Pipeline") {
+                        VStack(spacing: 12) {
+                            ForEach(leads.prefix(3)) { lead in
+                                TenantPipelineRow(lead: lead)
+                            }
+                            NavigationLink {
+                                TenantPipelineView(leads: leads)
+                            } label: {
+                                SectionSeeAllRow()
+                            }
+                        }
+                    }
                 }
+                .padding(.vertical, 24)
+                .padding(.horizontal, 20)
             }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Home")
         }
     }
-    
-    private var leadsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Tenant Pipeline")
-                .font(.title3.weight(.semibold))
-            
-            VStack(spacing: 14) {
-                ForEach($leads) { $lead in
-                    TenantLeadCard(lead: $lead)
-                }
-            }
-        }
-    }
-    
-    private var complianceSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Verification & Compliance")
-                .font(.title3.weight(.semibold))
-            
-            Text("Track verification progress to keep listings at the top of tenant searches.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
-            VStack(spacing: 12) {
-                ForEach($verificationTasks) { $task in
-                    VerificationTaskRow(task: $task)
-                }
-            }
+
+    private func color(for status: LandlordProperty.Status) -> Color {
+        switch status {
+        case .live:           return .green
+        case .pending:        return .orange
+        case .needsAttention: return .red
+        case .draft:          return .gray
         }
     }
 }
+
+// ---- Reusable section shell
+private struct SectionCard<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.title3.weight(.semibold))
+            content
+        }
+        .padding(16)
+        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
+    }
+}
+
+private struct SectionSeeAllRow: View {
+    var body: some View {
+        HStack {
+            Spacer()
+            Text("See all")
+                .font(.subheadline.weight(.semibold))
+            Image(systemName: "chevron.right")
+                .font(.subheadline.weight(.semibold))
+        }
+        .foregroundStyle(.tint)
+        .padding(.top, 4)
+    }
+}
+
+// ---- Compact rows for the Home
+private struct ListingChipRow: View {
+    let title: String
+    let statusText: String
+    let statusColor: Color
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "house")
+                .frame(width: 36, height: 36)
+                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 10))
+            Text(title).font(.headline)
+            Spacer()
+            Text(statusText)
+                .font(.caption.weight(.semibold))
+                .padding(.vertical, 4)
+                .padding(.horizontal, 8)
+                .background(statusColor.opacity(0.15), in: Capsule())
+                .foregroundColor(statusColor)
+        }
+    }
+}
+
+private struct TenantPipelineRow: View {
+    let lead: TenantLead
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "person.circle.fill")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(lead.name).font(.headline)
+                // Listing name under the tenant
+                Text(lead.listingTitle).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text(lead.stage.rawValue)
+                .font(.caption.weight(.semibold))
+                .padding(.vertical, 4)
+                .padding(.horizontal, 8)
+                .background(stageColor(lead.stage).opacity(0.15), in: Capsule())
+                .foregroundColor(stageColor(lead.stage))
+        }
+    }
+
+    private func stageColor(_ s: TenantLead.Stage) -> Color {
+        switch s {
+        case .new:             return .gray
+        case .preQualified:    return .blue
+        case .scheduledTour:   return .purple
+        case .sentApplication: return .green
+        }
+    }
+}
+
+// ---- Drill-down screens
+
+struct ListingsListView: View {
+    let properties: [LandlordProperty]
+
+    var body: some View {
+        List(properties) { p in
+            NavigationLink {
+                ListingFocusView(property: p)
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(p.title).font(.headline)
+                        Text(p.address).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text(p.status.rawValue)
+                        .font(.caption.weight(.semibold))
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 8)
+                        .background(color(for: p.status).opacity(0.15), in: Capsule())
+                        .foregroundColor(color(for: p.status))
+                }
+            }
+        }
+        .navigationTitle("Listings")
+    }
+
+    private func color(for status: LandlordProperty.Status) -> Color {
+        switch status {
+        case .live:           return .green
+        case .pending:        return .orange
+        case .needsAttention: return .red
+        case .draft:          return .gray
+        }
+    }
+}
+
+struct ListingFocusView: View {
+    let property: LandlordProperty
+    @EnvironmentObject private var router: AppRouter
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                header
+                analytics
+                if let chatID = property.analytics.chatThreadID {
+                    chatPreview(chatID: chatID)
+                }
+                Spacer(minLength: 12)
+            }
+            .padding()
+        }
+        .navigationTitle("Listing")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(property.title).font(.title2.weight(.semibold))
+            Text(property.address).font(.subheadline).foregroundStyle(.secondary)
+            Text(property.status.rawValue)
+                .font(.caption.weight(.semibold))
+                .padding(.vertical, 4).padding(.horizontal, 8)
+                .background(Color(.systemGray5), in: Capsule())
+        }
+    }
+
+    private var analytics: some View {
+        HStack(spacing: 12) {
+            statChip(label: "Views", value: "\(property.analytics.views)")
+            statChip(label: "Favourites", value: "\(property.analytics.favourites)")
+            statChip(label: "Chats", value: property.analytics.chatThreadID == nil ? "0" : "1")
+        }
+    }
+
+    private func statChip(label: String, value: String) -> some View {
+        VStack {
+            Text(value).font(.headline)
+            Text(label).font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func chatPreview(chatID: UUID) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Linked Chat")
+                .font(.title3.weight(.semibold))
+
+            Button {
+                router.openChat(threadID: chatID, fromListing: property.id)
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Tenant Inquiry")
+                            .font(.headline)
+                        Text("Tap to open in Chats")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
+            }
+        }
+        .padding(.top, 8)
+    }
+}
+
+
+struct TenantPipelineView: View {
+    let leads: [TenantLead]
+
+    var body: some View {
+        List(leads) { lead in
+            NavigationLink {
+                TenantFocusView(lead: lead)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(lead.name).font(.headline)
+                        Spacer()
+                        Text(lead.stage.rawValue)
+                            .font(.caption.weight(.semibold))
+                            .padding(.vertical, 3)
+                            .padding(.horizontal, 7)
+                            .background(stageColor(lead.stage).opacity(0.15), in: Capsule())
+                            .foregroundColor(stageColor(lead.stage))
+                    }
+                    Text(lead.listingTitle).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .navigationTitle("Tenant Pipeline")
+    }
+
+    private func stageColor(_ s: TenantLead.Stage) -> Color {
+        switch s {
+        case .new:             return .gray
+        case .preQualified:    return .blue
+        case .scheduledTour:   return .purple
+        case .sentApplication: return .green
+        }
+    }
+}
+
+struct TenantFocusView: View {
+    @State var lead: TenantLead
+    @State private var showAdvanceConfirm = false
+    
+    private var nextStage: TenantLead.Stage? {
+        switch lead.stage {
+        case .new:             return .preQualified
+        case .preQualified:    return .scheduledTour
+        case .scheduledTour:   return .sentApplication
+        case .sentApplication: return nil
+        }
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                header
+                info
+                notifications
+                pipelineActions
+                documents
+                chatCTA
+            }
+            .padding()
+        }
+        .navigationTitle("Applicant")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(lead.name).font(.title2.weight(.semibold))
+            Text(lead.listingTitle).font(.subheadline).foregroundStyle(.secondary)
+            Text(lead.stage.rawValue)
+                .font(.caption.weight(.semibold))
+                .padding(.vertical, 4).padding(.horizontal, 8)
+                .background(Color(.systemGray5), in: Capsule())
+        }
+    }
+
+    private var info: some View {
+        SectionCard(title: "Information") {
+            VStack(alignment: .leading, spacing: 8) {
+                row("Email", lead.email)
+                row("Target Move-in", DateFormatter.localizedString(from: lead.moveInDate, dateStyle: .medium, timeStyle: .none))
+                row("Notes", lead.notes)
+            }
+        }
+    }
+
+    private var notifications: some View {
+        SectionCard(title: "Notifications") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("• New: Uploaded proof of income")
+                Text("• Reminder: Tour scheduled next Tuesday at 5:00 PM")
+            }
+            .font(.subheadline)
+        }
+    }
+
+    private var pipelineActions: some View {
+        SectionCard(title: "Pipeline") {
+            HStack {
+                Text("Current Stage: ").foregroundStyle(.secondary)
+                Text(lead.stage.rawValue).font(.headline)
+                Spacer()
+                Button("Advance") { showAdvanceConfirm = true }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(nextStage == nil)
+            }
+            // Confirmation
+            .confirmationDialog(
+                nextStage != nil
+                    ? "Advance applicant to “\(nextStage!.rawValue)”?"
+                    : "Already at final stage",
+                isPresented: $showAdvanceConfirm,
+                titleVisibility: .visible
+            ) {
+                if let ns = nextStage {
+                    Button("Advance to \(ns.rawValue)") {
+                        withAnimation(.easeInOut) { lead.stage = ns }
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+        }
+    }
+
+
+    private var documents: some View {
+        SectionCard(title: "Documents") {
+            VStack(alignment: .leading, spacing: 8) {
+                Button("Review Application (prototype)") {}
+                    .buttonStyle(.bordered)
+                Button("Send Lease (prototype)") {}
+                    .buttonStyle(.bordered)
+            }
+        }
+    }
+
+    private var chatCTA: some View {
+        SectionCard(title: "Chat") {
+            VStack(alignment: .leading, spacing: 8) {
+                Button {
+                    // Future: deep-link to tenant chat thread
+                } label: {
+                    Label("Open Tenant Chat", systemImage: "bubble.left.and.bubble.right")
+                }
+                .buttonStyle(.bordered)
+                Text("Note: Chat button is a future quality-of-life feature in this prototype.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func row(_ k: String, _ v: String) -> some View {
+        HStack {
+            Text(k).foregroundStyle(.secondary)
+            Spacer()
+            Text(v)
+        }
+    }
+
+    private func advanceStage() {
+        switch lead.stage {
+        case .new:             lead.stage = .preQualified
+        case .preQualified:    lead.stage = .scheduledTour
+        case .scheduledTour:   lead.stage = .sentApplication
+        case .sentApplication: break
+        }
+    }
+}
+
+
 
 private struct LandlordPropertyCard: View {
     @Binding var property: LandlordProperty
@@ -832,7 +1208,7 @@ private struct LandlordPropertyCard: View {
     private let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
+        formatter.currencyCode = "CAD"
         return formatter
     }()
     
@@ -869,16 +1245,15 @@ private struct LandlordPropertyCard: View {
             .foregroundStyle(.secondary)
             
             HStack {
-                MetricPill(title: "Inquiries", value: "\(property.inquiriesThisWeek) /wk", color: .teal)
-                MetricPill(title: "Favorites", value: "\(property.favorites)", color: .indigo)
+                MetricPill(title: "Inquiries", value: "\(property.analytics.inquiriesThisWeek) /wk", color: .teal)
+                MetricPill(title: "Favorites", value: "\(property.analytics.favourites)", color: .indigo)
+
             }
             
             VStack(alignment: .leading, spacing: 6) {
                 Text("Verification progress")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
-                ProgressView(value: property.verificationProgress)
-                    .tint(.green)
             }
         }
         .padding(20)
