@@ -35,7 +35,7 @@ struct SwipeDiscoveryView: View {
     // "liked" popup
     @State private var likedCard: SwipeCardModel?
 
-    private let swipeDistanceTrigger: CGFloat = 0.5 // % of width
+    private let swipeDistanceTrigger: CGFloat = 0.25 // % of width
 
     init(listings: [RentalListing]) {
         _cards = State(initialValue: listings.map { SwipeCardModel(listing: $0) })
