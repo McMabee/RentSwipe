@@ -188,82 +188,222 @@ body.auth-page .nav-toggle {
   transform: none !important;
 }
 
-.auth-form .panel{
-  transition: transform .35s ease, opacity .35s ease; /* right panel keeps animating */
-}
-
 @media (max-height: 640px){
   .auth-form .panel{ overflow:auto; }
 }
 
 /* center auth viewport and give left side padding */
-.auth-viewport{min-height:calc(100vh - 120px);display:flex;align-items:center;justify-content:center;padding:2rem}
-.auth-card{display:grid;grid-template-columns:1fr 1fr;max-width:920px;width:100%;background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,0.18)}
-.auth-side{padding:2.25rem;display:flex;flex-direction:column;gap:1rem;align-items:flex-start;justify-content:center}
-
-/* right column is sliding area */
-.auth-form{grid-column:2 / 3;padding:0;min-height:360px;position:relative;overflow:hidden}
-
-/* back link: inline arrow + "Back", subtle */
-.back-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--muted);text-decoration:none;font-weight:400;font-size:.95rem;margin-bottom:.6rem}
-.back-link svg{width:14px;height:14px;opacity:.9}
-.back-link:hover{color:var(--accent)}
-
-/* panels layout + animation */
-.auth-form .panel{position:absolute;top:0;left:0;width:100%;height:100%;padding:2rem;box-sizing:border-box;transition:transform .48s cubic-bezier(.2,.9,.25,1),opacity .28s ease;display:flex;flex-direction:column;justify-content:flex-start}
-.auth-form .panel h3{margin:0 0 .6rem}
-
-/* inputs */
-.input{display:flex;flex-direction:column;gap:.35rem;margin-top:.6rem}
-.input label{font-size:.9rem;color:var(--muted)}
-.input input{padding:.8rem .9rem;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:transparent;color:var(--text);width:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
-.input input:focus{outline:2px solid rgba(96,165,250,0.12);outline-offset:2px}
-
-/* actions */
-.auth-actions{display:flex;gap:.6rem;align-items:center;margin-top:1rem}
-.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;padding:.7rem 1rem;border-radius:10px;border:0;cursor:pointer}
-.btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
-
-/* subtle link button */
-.link{background:none;border:0;color:var(--accent);cursor:pointer;font-weight:600;padding:0}
-
-/* visible panel defaults */
-.auth-form .panel-signup{transform:translateX(0);opacity:1}
-.auth-form .panel-login{transform:translateX(100%);opacity:0}
-
-/* when in login mode slide the panels */
-.auth-card.auth-mode-login .panel-signup{transform:translateX(-100%);opacity:0}
-.auth-card.auth-mode-login .panel-login{transform:translateX(0);opacity:1}
-
-/* smaller screens: stack */
-@media (max-width:720px){
-  .auth-card{grid-template-columns:1fr;min-height:auto}
-  .auth-side{display:none}
-  .auth-form{grid-column:1 / -1}
+.auth-viewport{
+  min-height: calc(100vh - 120px);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;          /* anchor from top so it doesn’t jump */
+  padding:3rem 1rem;
 }
 
-/* === Carousel: show details only for centered (active) card === */
-.person .contact-full{display:none; margin-top:.35rem; gap:.25rem}
-.person.is-active .contact-full{display:flex; flex-direction:column}
-.person .avatar{width:160px;height:160px;border-radius:10px;object-fit:cover;transition:transform .28s ease, box-shadow .28s ease}
-.person.is-active .avatar{transform:scale(1.06); box-shadow:0 12px 30px rgba(2,6,23,0.25)}
+.auth-card{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  max-width:980px;
+  width:100%;
+  background:var(--card);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(2,6,23,0.18);
+}
 
-/* Make the active card stand out a bit more */
-.person.is-active{transform:scale(1.1)}
-.person.is-active .person-card{transform:translateY(-8px) scale(1.04)}
+.auth-side{
+  padding:2.25rem;
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+  align-items:flex-start;
+  justify-content:center;
+}
 
-/* Ensure person cards have a smooth transition */
-.person, .person-card{transition:transform .28s ease, opacity .28s ease}
+/* right column is the sliding area */
+.auth-form{
+  grid-column:2 / 3;
+  position:relative;
+  overflow:hidden;
+  min-height:480px;                /* same height in both modes */
+}
 
-/* === Auth page: prevent hidden buttons/content === */
-.auth-viewport{min-height:calc(100vh - 120px);}
-.auth-card{max-width:980px}
-.auth-form{min-height:520px; overflow:visible}
-/* Allow panels to scroll on very small screens so buttons stay reachable */
+/* panels layout + animation (only right side moves) */
+.auth-form .panel{
+  position:absolute;
+  inset:0;
+  padding:2rem;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  transition:transform .45s cubic-bezier(.2,.9,.25,1), opacity .28s ease;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* default: signup visible, login off to the right */
+.auth-form .panel-signup{
+  transform:translateX(0);
+  opacity:1;
+}
+.auth-form .panel-login{
+  transform:translateX(100%);
+  opacity:0;
+}
+
+/* when in login mode, slide signup left and bring login in */
+.auth-card.auth-mode-login .panel-signup{
+  transform:translateX(-100%);
+  opacity:0;
+}
+.auth-card.auth-mode-login .panel-login{
+  transform:translateX(0);
+  opacity:1;
+}
+
+/* smaller screens: hide left side, form takes full width */
+@media (max-width:720px){
+  .auth-card{
+    grid-template-columns:1fr;
+  }
+  .auth-side{
+    display:none;
+  }
+  .auth-form{
+    grid-column:1 / -1;
+    min-height:520px;
+  }
+}
+
+/* very short viewports: allow internal scroll without moving the card */
 @media (max-height:640px){
-  .auth-form{min-height:420px}
-  .auth-form .panel{overflow:auto}
+  .auth-form{
+    min-height:420px;
+  }
+  .auth-form .panel{
+    overflow:auto;
+  }
 }
 
 /* Keep action buttons visible and spaced */
+.auth-actions{
+  margin-top:1rem;
+  flex-wrap:wrap;
+}
+
 .auth-actions{margin-top:1rem; flex-wrap:wrap}
+
+.back-link{
+  display:inline-flex;
+  align-items: center;
+  gap:.35rem;
+  font-size:.85rem;
+  color:var(--muted);
+  text-decoration: none;
+  margin-bottom:1rem;
+}
+
+.back-link svg{
+  width:16px;
+  height:16px;
+  flex-shrink:0;
+}
+
+.back-link:hover{
+  color:var(--accent)
+}
+
+body.auth-page .input{
+  display:flex;
+  flex-direction:column;
+  gap:.35rem;
+  margin-top:.75rem;
+}
+
+body.auth-page .input label{
+  font-size:.85rem;
+  color:var(--muted);
+}
+
+body.auth-page .input input{
+  width:100%;
+  padding:.55rem .8rem;
+  border-radius:8px;
+  border:1px solid rgba(148,163,184,0.45);
+  background:#020617;
+  color:var(--text);
+  font-size:.9rem;
+  outline:none;
+  transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+html[data-theme="day"] body.auth-page .input input{
+  background:#f9fafb;
+  border-color:rgba(148,163,184,0.6);
+}
+
+body.auth-page .input input::placeholder{
+  color:rgba(148,163,184,0.75);
+}
+
+body.auth-page .input input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 1px rgba(96,165,250,0.6);
+}
+
+/* Button row under the fields */
+body.auth-page .auth-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.6rem;
+  align-items:center;
+  margin-top:1rem;
+}
+
+/* Primary button */
+body.auth-page .btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:.6rem 1.2rem;
+  border-radius:999px;
+  background:var(--accent);
+  color:#fff;
+  font-size:.9rem;
+  font-weight:600;
+  border:none;
+  cursor:pointer;
+  text-decoration:none;
+  transition:background .18s ease,
+             transform .1s ease,
+             box-shadow .18s ease;
+}
+
+body.auth-page .btn:hover{
+  background:#3b82f6;
+  transform:translateY(-1px);
+  box-shadow:0 10px 22px rgba(37,99,235,0.35);
+}
+
+body.auth-page .btn:active{
+  transform:translateY(0);
+  box-shadow:none;
+}
+
+/* Small "Log in / Create account" text buttons */
+body.auth-page .link{
+  background:transparent;
+  border:none;
+  padding:0;
+  margin:0;
+  font:inherit;
+  color:var(--accent);
+  cursor:pointer;
+  text-decoration:underline;
+}
+
+body.auth-page .link:hover{
+  color:#93c5fd;
+}
