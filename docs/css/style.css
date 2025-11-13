@@ -10,6 +10,7 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
+html{scroll-behavior: smooth;}
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
@@ -101,3 +102,168 @@ html[data-theme="day"]{
 
 /* small utilities */
 h2{margin-top:0}
+
+/* Contact carousel styles */
+:root{
+  --card-w: 190px;       /* card content width (not including gap) */
+  --card-gap: 16px;      /* horizontal space between cards */
+  --slide-ms: 450ms;
+}
+
+.carousel{
+  position: relative;
+  padding: 0.5rem 2.0rem;
+  overflow: hidden;
+}
+
+.carousel-prev,
+.carousel-next{
+  position:absolute;
+  top:50%; transform:translateY(-50%);
+  background:transparent;
+  border:1px solid var(--muted, rgba(148,163,184,.6));
+  color:var(--muted, rgba(148,163,184,.9));
+  border-radius:10px;
+  padding:.25rem .6rem;
+  cursor:pointer;
+  z-index: 2;
+}
+.carousel-prev{ left:.5rem; }
+.carousel-next{ right:.5rem; }
+
+.carousel-track{
+  display:flex;
+  gap: var(--card-gap);
+  will-change: transform;
+  transition: transform var(--slide-ms) ease;
+}
+.person{ 
+  flex: 0 0 var(--card-w);
+  text-align:center;
+  transform-origin:center center;
+  transition: transform .28s ease, opacity .28s ease;
+}
+.person .avatar{
+  width:160px;height:160px;object-fit:cover;border-radius:12px;
+  transition: transform .28s ease, box-shadow .28s ease;
+}
+/* focused / active person */
+.person.is-active{transform:scale(1.06)}
+.person.is-active .person-card{transform:translateY(-6px) scale(1.02);box-shadow:0 18px 40px rgba(2,6,23,0.18)}
+.person.is-inactive{opacity:.6;transform:scale(.98)}
+
+/* contact-full email styling: remove blue/underline, improve readability */
+.person .contact-full a{
+  color:var(--text);
+  text-decoration:none;
+  font-weight:500;
+}
+.person .contact-full a:hover{color:var(--accent)}
+
+/* Person roles (small badges when there are multiple titles) */
+.person-details{display:flex;flex-direction:column;align-items:center;text-align:center}
+.roles{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center;margin-top:.25rem}
+.role-badge{font-size:.78rem;color:var(--muted);background:rgba(255,255,255,0.03);padding:.18rem .5rem;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
+
+/* tighten up person card spacing so two-line titles fit nicely */
+.person-card{padding:.6rem;min-width:140px;max-width:200px}
+.person .name{font-size:1rem;margin:0.2rem 0 0}
+
+.person .contact-full{ display:none; margin-top:.35rem; gap:.25rem; }
+.person.is-active{ transform: scale(1.08); }
+.person.is-active .avatar{ transform: scale(1.06); box-shadow:0 12px 30px rgba(2,6,23,.25); }
+.person.is-active .contact-full{ display:flex; flex-direction:column; }
+
+/* --- Auth page styling improvements --- */
+/* hide site nav and menu on auth page so header is clean */
+body.auth-page .site-nav,
+body.auth-page .nav-toggle {
+  display:none !important;
+}
+
+.auth-form .panel-intro,
+.auth-form .auth-left,
+.auth-form .panel-info {
+  transition: none !important;
+  transform: none !important;
+}
+
+.auth-form .panel{
+  transition: transform .35s ease, opacity .35s ease; /* right panel keeps animating */
+}
+
+@media (max-height: 640px){
+  .auth-form .panel{ overflow:auto; }
+}
+
+/* center auth viewport and give left side padding */
+.auth-viewport{min-height:calc(100vh - 120px);display:flex;align-items:center;justify-content:center;padding:2rem}
+.auth-card{display:grid;grid-template-columns:1fr 1fr;max-width:920px;width:100%;background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,0.18)}
+.auth-side{padding:2.25rem;display:flex;flex-direction:column;gap:1rem;align-items:flex-start;justify-content:center}
+
+/* right column is sliding area */
+.auth-form{grid-column:2 / 3;padding:0;min-height:360px;position:relative;overflow:hidden}
+
+/* back link: inline arrow + "Back", subtle */
+.back-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--muted);text-decoration:none;font-weight:400;font-size:.95rem;margin-bottom:.6rem}
+.back-link svg{width:14px;height:14px;opacity:.9}
+.back-link:hover{color:var(--accent)}
+
+/* panels layout + animation */
+.auth-form .panel{position:absolute;top:0;left:0;width:100%;height:100%;padding:2rem;box-sizing:border-box;transition:transform .48s cubic-bezier(.2,.9,.25,1),opacity .28s ease;display:flex;flex-direction:column;justify-content:flex-start}
+.auth-form .panel h3{margin:0 0 .6rem}
+
+/* inputs */
+.input{display:flex;flex-direction:column;gap:.35rem;margin-top:.6rem}
+.input label{font-size:.9rem;color:var(--muted)}
+.input input{padding:.8rem .9rem;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:transparent;color:var(--text);width:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+.input input:focus{outline:2px solid rgba(96,165,250,0.12);outline-offset:2px}
+
+/* actions */
+.auth-actions{display:flex;gap:.6rem;align-items:center;margin-top:1rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;padding:.7rem 1rem;border-radius:10px;border:0;cursor:pointer}
+.btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+
+/* subtle link button */
+.link{background:none;border:0;color:var(--accent);cursor:pointer;font-weight:600;padding:0}
+
+/* visible panel defaults */
+.auth-form .panel-signup{transform:translateX(0);opacity:1}
+.auth-form .panel-login{transform:translateX(100%);opacity:0}
+
+/* when in login mode slide the panels */
+.auth-card.auth-mode-login .panel-signup{transform:translateX(-100%);opacity:0}
+.auth-card.auth-mode-login .panel-login{transform:translateX(0);opacity:1}
+
+/* smaller screens: stack */
+@media (max-width:720px){
+  .auth-card{grid-template-columns:1fr;min-height:auto}
+  .auth-side{display:none}
+  .auth-form{grid-column:1 / -1}
+}
+
+/* === Carousel: show details only for centered (active) card === */
+.person .contact-full{display:none; margin-top:.35rem; gap:.25rem}
+.person.is-active .contact-full{display:flex; flex-direction:column}
+.person .avatar{width:160px;height:160px;border-radius:10px;object-fit:cover;transition:transform .28s ease, box-shadow .28s ease}
+.person.is-active .avatar{transform:scale(1.06); box-shadow:0 12px 30px rgba(2,6,23,0.25)}
+
+/* Make the active card stand out a bit more */
+.person.is-active{transform:scale(1.1)}
+.person.is-active .person-card{transform:translateY(-8px) scale(1.04)}
+
+/* Ensure person cards have a smooth transition */
+.person, .person-card{transition:transform .28s ease, opacity .28s ease}
+
+/* === Auth page: prevent hidden buttons/content === */
+.auth-viewport{min-height:calc(100vh - 120px);}
+.auth-card{max-width:980px}
+.auth-form{min-height:520px; overflow:visible}
+/* Allow panels to scroll on very small screens so buttons stay reachable */
+@media (max-height:640px){
+  .auth-form{min-height:420px}
+  .auth-form .panel{overflow:auto}
+}
+
+/* Keep action buttons visible and spaced */
+.auth-actions{margin-top:1rem; flex-wrap:wrap}

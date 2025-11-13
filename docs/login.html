@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign in — RentSwipe</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="auth-page">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">RentSwipe</a>
+
+      <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+        <ul>
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="index.html#how">How it works</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-controls">
+        <button id="theme-toggle" class="theme-toggle" aria-pressed="false" aria-label="Switch to day mode">
+          <span class="sr-only">Toggle theme</span>
+          <!-- Moon icon (shown for night) -->
+          <svg class="icon icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" fill="currentColor" />
+          </svg>
+          <!-- Sun icon (shown for day) -->
+          <svg class="icon icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+            <g stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none">
+              <line x1="12" y1="1.5" x2="12" y2="3.5"></line>
+              <line x1="12" y1="20.5" x2="12" y2="22.5"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1.5" y1="12" x2="3.5" y2="12"></line>
+              <line x1="20.5" y1="12" x2="22.5" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </g>
+          </svg>
+
+        </button>
+        <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="auth-viewport">
+      <div class="auth-card" id="auth-card" role="region" aria-label="Authentication">
+        <div class="auth-side">
+          <div class="brand-large">RentSwipe</div>
+          <h2>Find your next place — easily</h2>
+          <p>Sign in or create an account to start swiping and saving listings from verified landlords.</p>
+        </div>
+
+        <div class="auth-form" aria-labelledby="auth-heading">
+          <!-- signup (default visible) -->
+          <div class="panel panel-signup" id="panel-signup" aria-hidden="false">
+            <a class="back-link" href="index.html" aria-label="Back to homepage">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12l6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Back
+            </a>
+
+            <h3 id="auth-heading">Create an account</h3>
+
+            <div class="input"><label class="auth-aux" for="fullname">Full name</label>
+              <input id="fullname" type="text" placeholder="Your full name" autocomplete="name" />
+            </div>
+            <div class="input"><label class="auth-aux" for="signup-email">Email</label>
+              <input id="signup-email" type="email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="input"><label class="auth-aux" for="signup-password">Password</label>
+              <input id="signup-password" type="password" placeholder="Create a password" autocomplete="new-password" />
+            </div>
+
+            <div class="auth-actions">
+              <button class="btn" type="button" id="create-account-btn">Create account</button>
+              <div class="auth-aux">Already have an account? <button class="link js-show-login" type="button">Log in</button></div>
+            </div>
+          </div>
+
+          <div class="panel panel-login" id="panel-login" aria-hidden="true">
+            <a class="back-link" href="index.html" aria-label="Back to homepage">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12l6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Back
+            </a>
+
+            <h3 id="auth-heading-login">Sign in to RentSwipe</h3>
+
+            <div class="input">
+              <label class="auth-aux" for="login-email">Email</label>
+              <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="input">
+              <label class="auth-aux" for="login-password">Password</label>
+              <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" />
+            </div>
+
+            <div class="auth-actions">
+              <button class="btn" type="button" id="sign-in-btn">Sign in</button>
+              <div class="auth-aux">New here? <button class="link js-show-signup" type="button">Create account</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> RentSwipe</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>

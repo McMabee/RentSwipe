@@ -1,104 +1,193 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<title>RentSwipe</title>
-		<link rel="stylesheet" href="css/style.css" />
-	</head>
-	<body>
-		<header class="site-header">
-			<div class="container header-inner">
-				<a class="brand" href="#">RentSwipe</a>
-				<nav class="site-nav" id="site-nav" aria-label="Main navigation">
-					<ul>
-						<li><a href="#features">Features</a></li>
-						<li><a href="#how">How it works</a></li>
-						<li><a href="#contact">Contact</a></li>
-					</ul>
-				</nav>
-				<div class="header-controls">
-					<button id="theme-toggle" class="theme-toggle" aria-pressed="false" aria-label="Switch to day mode">
-						<span class="sr-only">Toggle theme</span>
-						<!-- Moon icon (shown for night) -->
-						<svg class="icon icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-							<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" fill="currentColor" />
-						</svg>
-						<!-- Sun icon (shown for day) -->
-						<svg class="icon icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-							<circle cx="12" cy="12" r="4" fill="currentColor"></circle>
-							<g stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none">
-								<line x1="12" y1="1.5" x2="12" y2="3.5"></line>
-								<line x1="12" y1="20.5" x2="12" y2="22.5"></line>
-								<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-								<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-								<line x1="1.5" y1="12" x2="3.5" y2="12"></line>
-								<line x1="20.5" y1="12" x2="22.5" y2="12"></line>
-								<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-								<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-							</g>
-						</svg>
-					</button>
-					<button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>RentSwipe</title>
+	<link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+	<header class="site-header">
+		<div class="container header-inner">
+			<a class="brand" href="#">RentSwipe</a>
+			<nav class="site-nav" id="site-nav" aria-label="Main navigation">
+				<ul>
+					<li><a href="#features">Features</a></li>
+					<li><a href="#how">How it works</a></li>
+					<li><a href="#contact">Contact</a></li>
+				</ul>
+			</nav>
+			<div class="header-controls">
+				<button id="theme-toggle" class="theme-toggle" aria-pressed="false" aria-label="Switch to day mode">
+					<span class="sr-only">Toggle theme</span>
+					<!-- Moon icon (shown for night) -->
+					<svg class="icon icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"
+						focusable="false">
+						<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" fill="currentColor" />
+					</svg>
+					<!-- Sun icon (shown for day) -->
+					<svg class="icon icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"
+						focusable="false">
+						<circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+						<g stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none">
+							<line x1="12" y1="1.5" x2="12" y2="3.5"></line>
+							<line x1="12" y1="20.5" x2="12" y2="22.5"></line>
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+							<line x1="1.5" y1="12" x2="3.5" y2="12"></line>
+							<line x1="20.5" y1="12" x2="22.5" y2="12"></line>
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+						</g>
+					</svg>
+				</button>
+				<button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+			</div>
+		</div>
+	</header>
+
+	<main>
+		<section class="hero">
+			<div class="container">
+				<h1>Simplifying student rentals</h1>
+				<p class="lead">Verified listings, from verified landlords, at your fingertips.</p>
+				<!-- changed: go to login/signup page -->
+				<a class="btn" href="login.html">Get started</a>
+			</div>
+		</section>
+
+		<section id="features" class="features">
+			<div class="container">
+				<h2>Features</h2>
+				<div class="grid">
+					<article>
+						<h3>Easy Browsing</h3>
+						<p>Swipe to find your perfect rental.</p>
+					</article>
+					<article>
+						<h3>Saved Matches</h3>
+						<p>Save favorites and message landlords directly in-app.</p>
+					</article>
+					<article>
+						<h3>Smart Filters</h3>
+						<p>Refine results by price, location and amenities.</p>
+					</article>
 				</div>
 			</div>
-		</header>
+		</section>
 
-		<main>
-			<section class="hero">
-				<div class="container">
-					<h1>Simplifying student rentals</h1>
-					<p class="lead">Verified listings, from verified landlords, at your fingertips.</p>
-					<a class="btn" href="#features">Get started</a>
+		<section id="how" class="how">
+			<div class="container">
+				<h2>How it works</h2>
+
+				<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem">
+					<article>
+						<h3>For tenants</h3>
+						<p>Find and compare student rentals quickly. Listings that have been third‑party verified so you
+							can trust each posting is legitimate. Use filters to narrow results by price, location,
+							amenities and commute time. Save favourites, view detailed photos and landlord profiles, and
+							connect directly via in‑app messaging. Our comparison tools surface key differences (rent,
+							utilities, deposit, lease length) so you can make confident choices faster.</p>
+					</article>
+
+					<article>
+						<h3>For landlords</h3>
+						<p>Fill your rooms and houses faster by reaching a large pool of local students. Post listings,
+							manage availability, and screen applicants through our platform. RentSwipe highlights that
+							tenants are students in the area, helping you find reliable occupants quickly. Communicate
+							with applicants and tenants directly in‑app and track conversations from interest through
+							move‑in.</p>
+					</article>
+
+					<article>
+						<h3>Built-in, moderated communication</h3>
+						<p>Tenants and landlords can easily communicate within the app. When disputes arise, for
+							example, cleanliness concerns or repair requests, our moderated chat lets both sides raise
+							issues and work toward a resolution with oversight. Conversations are logged, and moderation
+							helps ensure problems are handled promptly and ethically, protecting both parties and
+							keeping living spaces well maintained.</p>
+					</article>
 				</div>
-			</section>
+			</div>
+		</section>
 
-			<section id="features" class="features">
-				<div class="container">
-					<h2>Features</h2>
-					<div class="grid">
-						<article>
-							<h3>Easy Browsing</h3>
-							<p>Swipe to find your perfect rental.</p>
+		<section id="contact" class="section">
+			<div class="container">
+				<h2>Contact</h2>
+
+				<!-- Carousel shell -->
+				<div id="contact-carousel" class="carousel" aria-label="Team">
+					<button class="carousel-prev" aria-label="Previous">‹</button>
+
+					<!-- Track (cards will slide on this strip) -->
+					<div class="carousel-track">
+						<!-- ONE card per person. Keep the same people/info you already show. -->
+						<article class="person person-card" data-id="ishit">
+							<img class="avatar" src="images/default.png" alt="Ishit Bhatia" />
+							<h3>Ishit Bhatia</h3>
+							<p class="role">Co-founder · Owner</p>
+							<div class="contact-full">
+								<a href="mailto:ishit@rentswipe.example">ishit@rentswipe.example</a>
+								<span>+1 (555) 010-1010</span>
+							</div>
 						</article>
-						<article>
-							<h3>Saved Matches</h3>
-							<p>Save favorites and message landlords directly in-app.</p>
+
+						<article class="person person-card" data-id="ty">
+							<img class="avatar" src="images/default.png" alt="Ty Mabee" />
+							<h3>Ty Mabee</h3>
+							<p class="role">Co-founder · Tech Lead</p>
+							<div class="contact-full">
+								<a href="mailto:ty@rentswipe.example">ty@rentswipe.example</a>
+								<span>+1 (555) 010-2020</span>
+							</div>
 						</article>
-						<article>
-							<h3>Smart Filters</h3>
-							<p>Refine results by price, location and amenities.</p>
+
+						<article class="person person-card" data-id="jordan">
+							<img class="avatar" src="images/default.png" alt="Jordan Lee" />
+							<h3>Jordan Lee</h3>
+							<p class="role">Engineering</p>
+							<div class="contact-full">
+								<a href="mailto:jordan@rentswipe.example">jordan@rentswipe.example</a>
+								<span>+1 (555) 010-3030</span>
+							</div>
+						</article>
+
+						<article class="person person-card" data-id="priya">
+							<img class="avatar" src="images/default.png" alt="Priya Patel" />
+							<h3>Priya Patel</h3>
+							<p class="role">Design</p>
+							<div class="contact-full">
+								<a href="mailto:priya@rentswipe.example">priya@rentswipe.example</a>
+								<span>+1 (555) 010-4040</span>
+							</div>
+						</article>
+
+						<article class="person person-card" data-id="diego">
+							<img class="avatar" src="images/default.png" alt="Diego Alvarez" />
+							<h3>Diego Alvarez</h3>
+							<p class="role">Support</p>
+							<div class="contact-full">
+								<a href="mailto:diego@rentswipe.example">diego@rentswipe.example</a>
+								<span>+1 (555) 010-5050</span>
+							</div>
 						</article>
 					</div>
-				</div>
-			</section>
 
-			<section id="how" class="how">
-				<div class="container">
-					<h2>How it works</h2>
-					<ol>
-						<li>Browse listings</li>
-						<li>Swipe or save</li>
-						<li>Contact and rent</li>
-					</ol>
+					<button class="carousel-next" aria-label="Next">›</button>
 				</div>
-			</section>
-
-			<section id="contact" class="contact">
-				<div class="container">
-					<h2>Contact</h2>
-					<p>Reach us at <a href="mailto:hi@rentswipe.example">hi@rentswipe.example</a></p>
-				</div>
-			</section>
-		</main>
-
-		<footer class="site-footer">
-			<div class="container">
-				<p>© <span id="year"></span> RentSwipe</p>
 			</div>
-		</footer>
+		</section>
+	</main>
 
-		<script src="js/main.js" defer></script>
-	</body>
+	<footer class="site-footer">
+		<div class="container">
+			<p>© <span id="year"></span> RentSwipe</p>
+		</div>
+	</footer>
+
+	<script src="js/main.js" defer></script>
+</body>
+
 </html>
-
