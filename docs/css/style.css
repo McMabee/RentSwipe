@@ -103,76 +103,198 @@ html[data-theme="day"]{
 /* small utilities */
 h2{margin-top:0}
 
+/* On narrower screens, stack feature/how cards in a single column */
+@media (max-width: 900px){
+  #features .grid,
+  #how .grid{
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Contact carousel styles */
 :root{
-  --card-w: 190px;       /* card content width (not including gap) */
-  --card-gap: 16px;      /* horizontal space between cards */
+  --card-w: 190px;       /* base card width */
+  --card-gap: 16px;      /* horizontal gap between cards */
   --slide-ms: 450ms;
 }
 
+/* Carousel card sizing tiers: desktop → tablet → phone */
+@media (max-width: 1100px){
+  :root{
+    --card-w: 220px;     /* wider cards → ~3 visible */
+  }
+}
+
+@media (max-width: 800px){
+  :root{
+    --card-w: 240px;     /* keep ~3 nicely sized */
+  }
+}
+
+@media (max-width: 640px){
+  :root{
+    --card-w: 70vw;      /* essentially a single big card */
+    --card-gap: 12px;
+  }
+}
+
+/* 3-card viewport on medium screens: clip cards 0 and 4 */
+@media (min-width: 696px) and (max-width: 1100px){
+  .carousel{
+    max-width: calc(var(--card-w) * 3 + var(--card-gap) * 2 + 5rem);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .carousel-track{
+    margin: 0 2.5rem;
+  }
+
+  .carousel-prev{
+    left: 0.75rem;
+  }
+
+  .carousel-next{
+    right: 0.75rem;
+  }
+
+}
+
+
+/* Outer shell: arrows + track inline, equal spacing on both sides */
 .carousel{
   position: relative;
-  padding: 0.5rem 2.0rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11.5rem;          /* space between arrows and cards */
+  padding: 0.75rem 0;
   overflow: hidden;
 }
 
-.carousel-prev,
-.carousel-next{
-  position:absolute;
-  top:50%; transform:translateY(-50%);
-  background:transparent;
-  border:1px solid var(--muted, rgba(148,163,184,.6));
-  color:var(--muted, rgba(148,163,184,.9));
-  border-radius:10px;
-  padding:.25rem .6rem;
-  cursor:pointer;
-  z-index: 2;
-}
-.carousel-prev{ left:.5rem; }
-.carousel-next{ right:.5rem; }
-
+/* The sliding strip */
 .carousel-track{
-  display:flex;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
   gap: var(--card-gap);
   will-change: transform;
   transition: transform var(--slide-ms) ease;
 }
-.person{ 
+
+/* Arrow buttons */
+.carousel-prev,
+.carousel-next{
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0px;
+  color: var(--muted, rgba(148,163,184,.9));
+  cursor: pointer;
+}
+
+/* Keep arrows visible + padded on small screens */
+@media (max-width: 640px){
+  .carousel{
+    padding: 0.5rem 0.75rem;   /* less horizontal padding so arrows stay inside */
+  }
+
+  .carousel-prev,
+  .carousel-next{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;
+    height:32px;
+  }
+
+  .carousel-prev{ left:0; }    /* equal spacing from cards on both sides */
+  .carousel-next{ right:0; }
+}
+
+/* Person cards */
+.person{
   flex: 0 0 var(--card-w);
-  text-align:center;
-  transform-origin:center center;
+  text-align: center;
+  transform-origin: center center;
   transition: transform .28s ease, opacity .28s ease;
 }
+
+.person-card{
+  padding: .6rem;
+}
+
 .person .avatar{
-  width:160px;height:160px;object-fit:cover;border-radius:12px;
+  width: 100%;
+  max-width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0 auto;
   transition: transform .28s ease, box-shadow .28s ease;
 }
-/* focused / active person */
-.person.is-active{transform:scale(1.06)}
-.person.is-active .person-card{transform:translateY(-6px) scale(1.02);box-shadow:0 18px 40px rgba(2,6,23,0.18)}
-.person.is-inactive{opacity:.6;transform:scale(.98)}
 
-/* contact-full email styling: remove blue/underline, improve readability */
+/* active/inactive states */
+.person .contact-full{ display:none; margin-top:.35rem; gap:.25rem; }
+
+.person.is-active{
+  transform: scale(1.08);
+}
+.person.is-active .avatar{
+  transform: scale(1.06);
+  box-shadow: 0 12px 30px rgba(2,6,23,.25);
+}
+.person.is-active .contact-full{
+  display:flex;
+  flex-direction:column;
+}
+.person.is-inactive{
+  opacity:.6;
+  transform:scale(.98);
+}
+
+/* contact email styling */
 .person .contact-full a{
   color:var(--text);
   text-decoration:none;
   font-weight:500;
 }
-.person .contact-full a:hover{color:var(--accent)}
+.person .contact-full a:hover{color:var(--accent);}
 
-/* Person roles (small badges when there are multiple titles) */
-.person-details{display:flex;flex-direction:column;align-items:center;text-align:center}
-.roles{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center;margin-top:.25rem}
-.role-badge{font-size:.78rem;color:var(--muted);background:rgba(255,255,255,0.03);padding:.18rem .5rem;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
+/* --- Responsive carousel sizing tiers --- */
+:root{
+  --card-w: 190px;
+  --card-gap: 16px;
+  --slide-ms: 450ms;
+}
 
-/* tighten up person card spacing so two-line titles fit nicely */
-.person-card{padding:.6rem;min-width:140px;max-width:200px}
-.person .name{font-size:1rem;margin:0.2rem 0 0}
+/* Medium screens: slightly narrower cards (roughly 3 visible) */
+@media (max-width: 960px){
+  :root{
+    --card-w: 180px;
+  }
+}
 
-.person .contact-full{ display:none; margin-top:.35rem; gap:.25rem; }
-.person.is-active{ transform: scale(1.08); }
-.person.is-active .avatar{ transform: scale(1.06); box-shadow:0 12px 30px rgba(2,6,23,.25); }
-.person.is-active .contact-full{ display:flex; flex-direction:column; }
+/* Small screens: single focused card centered */
+@media (max-width: 640px){
+  :root{
+    --card-w: 68vw;      /* card scales with viewport width */
+    --card-gap: 12px;
+  }
+
+  .carousel{
+    gap: .75rem;
+  }
+
+  .person .avatar{
+    max-width: 260px;
+    height: auto;
+  }
+}
 
 /* --- Auth page styling improvements --- */
 /* hide site nav and menu on auth page so header is clean */
@@ -339,6 +461,14 @@ body.auth-page .input input{
   transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
 }
 
+/* Stack Features & How it works vertically on narrower screens */
+@media (max-width: 900px){
+  .features .grid,
+  #how .grid{
+    grid-template-columns: 1fr !important;
+  }
+}
+
 html[data-theme="day"] body.auth-page .input input{
   background:#f9fafb;
   border-color:rgba(148,163,184,0.6);
@@ -407,3 +537,60 @@ body.auth-page .link{
 body.auth-page .link:hover{
   color:#93c5fd;
 }
+
+/* --- Carousel overrides: arrows + spacing + visibility --- */
+
+/* Base layout: 3-card viewport already handled by earlier max-width rule */
+.carousel{
+  position: relative;
+  display: block;          /* override earlier flex layout */
+  padding: 0.75rem 0;
+  overflow: hidden;
+}
+
+/* Leave space inside for arrows on both sides */
+.carousel-track{
+  display: flex;
+  justify-content: center;
+  gap: var(--card-gap);
+  will-change: transform;
+  transition: transform var(--slide-ms) ease;
+  margin: 0 3rem;          /* space between first/last card and arrows */
+}
+
+/* Arrow buttons: larger, no circle, just arrow glyph */
+.carousel-prev,
+.carousel-next{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.8rem;       /* bigger arrows */
+  line-height: 1;
+  width: auto;
+  height: auto;
+  padding: 0;
+  cursor: pointer;
+}
+
+.carousel-prev{ left: 0.75rem; }
+.carousel-next{ right: 0.75rem; }
+
+/* Slight tweaks on very small screens */
+@media (max-width: 695px){
+  .carousel-track{
+    margin: 0 2.25rem;
+  }
+  .carousel-prev,
+  .carousel-next{
+    font-size: 1.6rem;
+  }
+}
+
+/* Each person card is fixed width – no shrinking */
+.carousel-track .person{
+  flex: 0 0 var(--card-w);
+}
+

@@ -75,6 +75,18 @@
             <div class="input"><label class="auth-aux" for="signup-password">Password</label>
               <input id="signup-password" type="password" placeholder="Create a password" autocomplete="new-password" />
             </div>
+            <div class="input">
+              <span class="auth-aux">Account type</span>
+              <div class="account-type-options">
+                <label>
+                  <input type="radio" name="accountType" value="tenant"/>
+                  Tenant
+                </label>
+                <label>
+                  <input type="radio" name="accountType" value="landlord"/>
+                </label>
+              </div>
+            </div>
 
             <div class="auth-actions">
               <button class="btn" type="button" id="create-account-btn">Create account</button>

@@ -230,3 +230,90 @@ document.addEventListener('DOMContentLoaded', function(){
   })();
 
 }); // end DOMContentLoaded
+
+// Auth backend wiring
+const WORKER_BASE_URL = "https://rentswipe-auth.rentswipe.workers.dev/";
+
+document.addEventListener("DOMContentLoaded", () => {
+  const createAccountBtn = document.getElementById("create-account-btn");
+  const signInBtn = document.getElementById("sign-in-btn");
+
+  if (createAccountBtn) {
+    createAccountBtn.addEventListener("click", async () => {
+      const fullName = document.getElementById("fullname").value.trim();
+      const email = document.getElementById("signup-email").value.trim();
+      const password = document.getElementById("signup-password").value.trim();
+
+      const accountTypeInput = document.querySelector(
+        'input[name="accountType"]:checked'
+      );
+      const accountType = accountTypeInput ? accountTypeInput.value : null;
+
+      if (!fullName || !email || !password || !accountType){
+        alert("Please fill out all fields and select an account type.");
+        return;
+      }
+
+      try {
+        const res = await fetch('${WORKER_BASE_URL}/api/signup', {
+          method: "POST",
+          header: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName,
+            email,
+            password,
+            accountType,
+          }), 
+        });
+
+        const dat = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.ok){
+          alert(data.error || "Signup failed. Please try again.");
+          return;
+        }
+
+        // Take them to the home page
+        //TODO: develop homepage
+        window.location.href = "home.html"; 
+      } catch (err) {
+        console.error("Signup error:", err);
+        alert("Something went wrong. Please try again.");
+      }
+    });
+  }
+
+  if (signInBtn){
+    signInBtn.addEventListener("click", async() => {
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value.trim();
+
+      if (!email || !password){
+        alert("Please enter your email and password.");
+        return;
+      }
+
+      try{
+        const res = await fetch(`${WORKER_BASE_URL}/api/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.ok){
+          alert(data.error || "Login failed. Please try again.");
+          return;
+        }
+
+        // Take them to the home page
+        //TODO: develop homepage
+        window.location.href = "home.html";
+      } catch (err) {
+        console.error("Login error:", err);
+        alert("Something went wrong. Please try again.");
+      }
+    });
+  }
+});
