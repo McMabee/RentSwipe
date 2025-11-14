@@ -182,138 +182,187 @@ document.addEventListener('DOMContentLoaded', function(){
 })();
 
 
-  // --- Auth page toggle (signup default) ---
-  (function(){
-    var authCard = document.getElementById('auth-card');
-    if(!authCard) return;
-    var showLoginButtons = Array.from(document.querySelectorAll('.js-show-login'));
-    var showSignupButtons = Array.from(document.querySelectorAll('.js-show-signup'));
-    var signInBtn = document.getElementById('sign-in-btn');
-    var createAccountBtn = document.getElementById('create-account-btn');
+    // --- Auth page toggle + backend wiring (signup default) ---
+  (function () {
+    var authCard = document.getElementById("auth-card");
+    if (!authCard) return;
 
-    function showLogin(){
-      authCard.classList.add('auth-mode-login');
-      var panelLogin = document.getElementById('panel-login');
-      var panelSignup = document.getElementById('panel-signup');
-      if(panelLogin) panelLogin.setAttribute('aria-hidden','false');
-      if(panelSignup) panelSignup.setAttribute('aria-hidden','true');
-      // focus first input of login
-      var loginEmail = document.getElementById('login-email');
-      if(loginEmail) loginEmail.focus();
-    }
-    function showSignup(){
-      authCard.classList.remove('auth-mode-login');
-      var panelLogin = document.getElementById('panel-login');
-      var panelSignup = document.getElementById('panel-signup');
-      if(panelLogin) panelLogin.setAttribute('aria-hidden','true');
-      if(panelSignup) panelSignup.setAttribute('aria-hidden','false');
-      var nameInput = document.getElementById('fullname');
-      if(nameInput) nameInput.focus();
+    var showLoginButtons = Array.from(
+      document.querySelectorAll(".js-show-login")
+    );
+    var showSignupButtons = Array.from(
+      document.querySelectorAll(".js-show-signup")
+    );
+    var signInBtn = document.getElementById("sign-in-btn");
+    var createAccountBtn = document.getElementById("create-account-btn");
+
+    // 👉 Set this to your real worker URL (no trailing slash)
+    var WORKER_BASE_URL = "https://rentswipe-auth.rentswipe.workers.dev";
+
+    function showLogin() {
+      authCard.classList.add("auth-mode-login");
+      var panelLogin = document.getElementById("panel-login");
+      var panelSignup = document.getElementById("panel-signup");
+      if (panelLogin) panelLogin.setAttribute("aria-hidden", "false");
+      if (panelSignup) panelSignup.setAttribute("aria-hidden", "true");
+      var loginEmail = document.getElementById("login-email");
+      if (loginEmail) loginEmail.focus();
     }
 
-    showLoginButtons.forEach(function(btn){ btn.addEventListener('click', showLogin); btn.addEventListener('keydown', function(e){ if(e.key === 'Enter') showLogin(); }); });
-    showSignupButtons.forEach(function(btn){ btn.addEventListener('click', showSignup); btn.addEventListener('keydown', function(e){ if(e.key === 'Enter') showSignup(); }); });
+    function showSignup() {
+      authCard.classList.remove("auth-mode-login");
+      var panelLogin = document.getElementById("panel-login");
+      var panelSignup = document.getElementById("panel-signup");
+      if (panelLogin) panelLogin.setAttribute("aria-hidden", "true");
+      if (panelSignup) panelSignup.setAttribute("aria-hidden", "false");
+      var nameInput = document.getElementById("fullname");
+      if (nameInput) nameInput.focus();
+    }
 
-    // simple placeholders for buttons (no backend yet)
-    if(signInBtn) signInBtn.addEventListener('click', function(){
-      // for now just add a quick visual feedback, then redirect to index (simulate success)
-      signInBtn.textContent = 'Signing in...';
-      setTimeout(function(){ window.location.href = 'index.html'; }, 700);
+    // Toggle buttons/links
+    showLoginButtons.forEach(function (btn) {
+      btn.addEventListener("click", showLogin);
+      btn.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") showLogin();
+      });
     });
-    if(createAccountBtn) createAccountBtn.addEventListener('click', function(){
-      createAccountBtn.textContent = 'Creating...';
-      setTimeout(function(){ window.location.href = 'index.html'; }, 700);
+    showSignupButtons.forEach(function (btn) {
+      btn.addEventListener("click", showSignup);
+      btn.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") showSignup();
+      });
     });
 
-    // default to signup view
-    showSignup();
-  })();
+    // === Backend calls ===
 
-}); // end DOMContentLoaded
+    async function signup() {
+      var fullName = (document.getElementById("fullname") || {}).value || "";
+      var email = (document.getElementById("signup-email") || {}).value || "";
+      var password =
+        (document.getElementById("signup-password") || {}).value || "";
+      fullName = fullName.trim();
+      email = email.trim();
+      password = password.trim();
 
-// Auth backend wiring
-const WORKER_BASE_URL = "https://rentswipe-auth.rentswipe.workers.dev/";
-
-document.addEventListener("DOMContentLoaded", () => {
-  const createAccountBtn = document.getElementById("create-account-btn");
-  const signInBtn = document.getElementById("sign-in-btn");
-
-  if (createAccountBtn) {
-    createAccountBtn.addEventListener("click", async () => {
-      const fullName = document.getElementById("fullname").value.trim();
-      const email = document.getElementById("signup-email").value.trim();
-      const password = document.getElementById("signup-password").value.trim();
-
-      const accountTypeInput = document.querySelector(
+      var accountTypeInput = document.querySelector(
         'input[name="accountType"]:checked'
       );
-      const accountType = accountTypeInput ? accountTypeInput.value : null;
+      var accountType = accountTypeInput ? accountTypeInput.value : null;
 
-      if (!fullName || !email || !password || !accountType){
+      if (!fullName || !email || !password || !accountType) {
         alert("Please fill out all fields and select an account type.");
         return;
       }
 
+      if (!WORKER_BASE_URL) {
+        console.error("WORKER_BASE_URL is not set");
+        return;
+      }
+
+      if (createAccountBtn) {
+        createAccountBtn.disabled = true;
+        createAccountBtn.textContent = "Creating...";
+      }
+
       try {
-        const res = await fetch('${WORKER_BASE_URL}/api/signup', {
+        const res = await fetch(WORKER_BASE_URL + "/api/signup", {
           method: "POST",
-          header: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            fullName,
-            email,
-            password,
-            accountType,
-          }), 
+            fullName: fullName,
+            email: email,
+            password: password,
+            accountType: accountType,
+          }),
         });
 
-        const dat = await res.json().catch(() => ({}));
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (e) {}
 
-        if (!res.ok || !data.ok){
+        if (!res.ok || !data.ok) {
           alert(data.error || "Signup failed. Please try again.");
+          if (createAccountBtn) {
+            createAccountBtn.disabled = false;
+            createAccountBtn.textContent = "Create account";
+          }
           return;
         }
 
-        // Take them to the home page
-        //TODO: develop homepage
         window.location.href = "home.html"; 
       } catch (err) {
         console.error("Signup error:", err);
         alert("Something went wrong. Please try again.");
+        if (createAccountBtn) {
+          createAccountBtn.disabled = false;
+          createAccountBtn.textContent = "Create account";
+        }
       }
-    });
-  }
+    }
 
-  if (signInBtn){
-    signInBtn.addEventListener("click", async() => {
-      const email = document.getElementById("login-email").value.trim();
-      const password = document.getElementById("login-password").value.trim();
+    async function login() {
+      var email = (document.getElementById("login-email") || {}).value || "";
+      var password =
+        (document.getElementById("login-password") || {}).value || "";
+      email = email.trim();
+      password = password.trim();
 
-      if (!email || !password){
+      if (!email || !password) {
         alert("Please enter your email and password.");
         return;
       }
 
-      try{
-        const res = await fetch(`${WORKER_BASE_URL}/api/login`, {
+      if (!WORKER_BASE_URL) {
+        console.error("WORKER_BASE_URL is not set");
+        return;
+      }
+
+      if (signInBtn) {
+        signInBtn.disabled = true;
+        signInBtn.textContent = "Signing in...";
+      }
+
+      try {
+        const res = await fetch(WORKER_BASE_URL + "/api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email: email, password: password }),
         });
 
-        const data = await res.json().catch(() => ({}));
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (e) {}
 
-        if (!res.ok || !data.ok){
+        if (!res.ok || !data.ok) {
           alert(data.error || "Login failed. Please try again.");
+          if (signInBtn) {
+            signInBtn.disabled = false;
+            signInBtn.textContent = "Sign in";
+          }
           return;
         }
 
-        // Take them to the home page
-        //TODO: develop homepage
-        window.location.href = "home.html";
+        window.location.href = "home.html"; 
       } catch (err) {
         console.error("Login error:", err);
         alert("Something went wrong. Please try again.");
+        if (signInBtn) {
+          signInBtn.disabled = false;
+          signInBtn.textContent = "Sign in";
+        }
       }
-    });
-  }
-});
+    }
+
+    if (signInBtn) {
+      signInBtn.addEventListener("click", login);
+    }
+    if (createAccountBtn) {
+      createAccountBtn.addEventListener("click", signup);
+    }
+
+    // Default view
+    showSignup();
+  })();
+}); // end DOMContentLoaded
