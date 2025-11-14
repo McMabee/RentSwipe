@@ -182,10 +182,12 @@ document.addEventListener('DOMContentLoaded', function(){
 })();
 
 
-    // --- Auth page toggle + backend wiring (signup default) ---
+  // --- Auth page toggle + backend wiring (signup default) ---
   (function () {
     var authCard = document.getElementById("auth-card");
-    if (!authCard) return;
+    if (!authCard) return; // only run on login.html
+
+    console.log("[Auth] Auth card found, wiring up auth logic");
 
     var showLoginButtons = Array.from(
       document.querySelectorAll(".js-show-login")
@@ -196,7 +198,8 @@ document.addEventListener('DOMContentLoaded', function(){
     var signInBtn = document.getElementById("sign-in-btn");
     var createAccountBtn = document.getElementById("create-account-btn");
 
-    // 👉 Set this to your real worker URL (no trailing slash)
+    // 👉 IMPORTANT: replace this with your real worker URL (NO trailing slash)
+    // Example: "https://rentswipe-auth.rentswipe.workers.dev"
     var WORKER_BASE_URL = "https://rentswipe-auth.rentswipe.workers.dev";
 
     function showLogin() {
@@ -236,6 +239,8 @@ document.addEventListener('DOMContentLoaded', function(){
     // === Backend calls ===
 
     async function signup() {
+      console.log("[Auth] Signup clicked");
+
       var fullName = (document.getElementById("fullname") || {}).value || "";
       var email = (document.getElementById("signup-email") || {}).value || "";
       var password =
@@ -281,6 +286,8 @@ document.addEventListener('DOMContentLoaded', function(){
           data = await res.json();
         } catch (e) {}
 
+        console.log("[Auth] Signup response", res.status, data);
+
         if (!res.ok || !data.ok) {
           alert(data.error || "Signup failed. Please try again.");
           if (createAccountBtn) {
@@ -290,7 +297,8 @@ document.addEventListener('DOMContentLoaded', function(){
           return;
         }
 
-        window.location.href = "home.html"; 
+        // ✅ On success, go to your "still developing" or home page
+        window.location.href = "home.html"; // or "coming-soon.html"
       } catch (err) {
         console.error("Signup error:", err);
         alert("Something went wrong. Please try again.");
@@ -302,6 +310,8 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     async function login() {
+      console.log("[Auth] Login clicked");
+
       var email = (document.getElementById("login-email") || {}).value || "";
       var password =
         (document.getElementById("login-password") || {}).value || "";
@@ -335,6 +345,8 @@ document.addEventListener('DOMContentLoaded', function(){
           data = await res.json();
         } catch (e) {}
 
+        console.log("[Auth] Login response", res.status, data);
+
         if (!res.ok || !data.ok) {
           alert(data.error || "Login failed. Please try again.");
           if (signInBtn) {
@@ -344,7 +356,8 @@ document.addEventListener('DOMContentLoaded', function(){
           return;
         }
 
-        window.location.href = "home.html"; 
+        // ✅ On success, go to your "still developing" or home page
+        window.location.href = "home.html"; // or "coming-soon.html"
       } catch (err) {
         console.error("Login error:", err);
         alert("Something went wrong. Please try again.");
