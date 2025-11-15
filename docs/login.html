@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sign in — RentSwipe</title>
+  <title>RentSwipe — Sign In</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body class="auth-page">
   <header class="site-header">
     <div class="container header-inner">
@@ -60,7 +62,10 @@
           <!-- signup (default visible) -->
           <div class="panel panel-signup" id="panel-signup" aria-hidden="false">
             <a class="back-link" href="index.html" aria-label="Back to homepage">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12l6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M15 6L9 12l6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
               Back
             </a>
 
@@ -75,28 +80,34 @@
             <div class="input"><label class="auth-aux" for="signup-password">Password</label>
               <input id="signup-password" type="password" placeholder="Create a password" autocomplete="new-password" />
             </div>
-            <div class="input">
-              <span class="auth-aux">Account type</span>
-              <div class="account-type-options">
-                <label>
-                  <input type="radio" name="accountType" value="tenant"/>
-                  Tenant
+            <div class="account-type-group">
+              <span class="account-type-label">Account type</span>
+              <div class="account-type-options" role="radiogroup" aria-label="Account type">
+                <label class="account-type-option">
+                  <input type="radio" name="accountType" value="tenant" checked />
+                  <span>Tenant</span>
                 </label>
-                <label>
-                  <input type="radio" name="accountType" value="landlord"/>
+                <label class="account-type-option">
+                  <input type="radio" name="accountType" value="landlord" />
+                  <span>Landlord</span>
                 </label>
               </div>
             </div>
 
             <div class="auth-actions">
               <button class="btn" type="button" id="create-account-btn">Create account</button>
-              <div class="auth-aux">Already have an account? <button class="link js-show-login" type="button">Log in</button></div>
+              <div class="auth-aux">Already have an account? <button class="link js-show-login" type="button">Log
+                  in</button></div>
             </div>
+
           </div>
 
           <div class="panel panel-login" id="panel-login" aria-hidden="true">
             <a class="back-link" href="index.html" aria-label="Back to homepage">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12l6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M15 6L9 12l6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
               Back
             </a>
 
@@ -113,7 +124,8 @@
 
             <div class="auth-actions">
               <button class="btn" type="button" id="sign-in-btn">Sign in</button>
-              <div class="auth-aux">New here? <button class="link js-show-signup" type="button">Create account</button></div>
+              <div class="auth-aux">New here? <button class="link js-show-signup" type="button">Create account</button>
+              </div>
             </div>
           </div>
         </div>
@@ -129,4 +141,5 @@
 
   <script src="js/main.js" defer></script>
 </body>
+
 </html>
