@@ -4,7 +4,7 @@ import SwiftUI
 struct SwipeCardModel: Identifiable, Equatable {
     let id = UUID()
     let listing: RentalListing
-
+    
     static func == (lhs: SwipeCardModel, rhs: SwipeCardModel) -> Bool {
         lhs.id == rhs.id
     }
@@ -21,7 +21,7 @@ struct SwipeDiscoveryView: View {
     @EnvironmentObject private var favourites: FavouritesStore
     // deck of cards (front is index 0)
     @State private var cards: [SwipeCardModel]
-
+    
     // drag state for the TOP card
     @GestureState private var dragOffset: CGSize = .zero
     @State private var settledOffset: CGSize = .zero
@@ -31,16 +31,16 @@ struct SwipeDiscoveryView: View {
     private var currentDragX: CGFloat {
         dragOffset.width + settledOffset.width
     }
-
+    
     // "liked" popup
     @State private var likedCard: SwipeCardModel?
-
+    
     private let swipeDistanceTrigger: CGFloat = 0.25 // % of width
-
+    
     init(listings: [RentalListing]) {
         _cards = State(initialValue: listings.map { SwipeCardModel(listing: $0) })
     }
-
+    
     var body: some View {
         GeometryReader { geo in
             mainDeckView(in: geo)
@@ -61,7 +61,7 @@ struct SwipeDiscoveryView: View {
             .presentationBackground(.ultraThinMaterial)
         }
     }
-
+    
     // MARK: - deck rendering extracted to help the compiler
     @ViewBuilder
     private func mainDeckView(in geo: GeometryProxy) -> some View {
@@ -72,30 +72,32 @@ struct SwipeDiscoveryView: View {
         }
         .frame(width: geo.size.width, height: geo.size.height)
     }
-
+    
     // one card layer in the stack (top card vs background cards)
     @ViewBuilder
     private func cardView(for card: SwipeCardModel,
                           atStackIndex index: Int,
                           geo: GeometryProxy) -> some View {
-
+        
         if index == 0 {
             topCard(card, geo: geo)
         } else if (1...3).contains(index) {
-            backgroundCard(card, index: index)
+            backgroundCard(card, index: index, geo: geo)
         } else {
             EmptyView()
         }
     }
-
+    
+    
     // MARK: - Top (draggable) card view
     private func topCard(_ card: SwipeCardModel, geo: GeometryProxy) -> some View {
         ZStack {
             CardDetailView(
                 listing: card.listing,
-                width: geo.size.width,
-                height: geo.size.height
+                cardHeight: geo.size.height,
+                cardWidth: geo.size.width
             )
+
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             
             swipeAffordanceOverlay(width: geo.size.width)
@@ -127,7 +129,7 @@ struct SwipeDiscoveryView: View {
                 .onEnded { value in
                     let totalX = value.translation.width + settledOffset.width
                     let widthThreshold = swipeDistanceTrigger * (geo.size.width * 0.9)
-
+                    
                     if totalX >= widthThreshold {
                         swipeAndRemove(.right, card: card, geo: geo)
                     } else if totalX <= -widthThreshold {
@@ -141,13 +143,15 @@ struct SwipeDiscoveryView: View {
                 }
         )
     }
-
+    
     // MARK: - Lower stacked cards (not draggable)
-    private func backgroundCard(_ card: SwipeCardModel, index: Int) -> some View {
+    private func backgroundCard(_ card: SwipeCardModel,
+                                index: Int,
+                                geo: GeometryProxy) -> some View {
         CardDetailView(
             listing: card.listing,
-            width: UIScreen.main.bounds.width,
-            height: UIScreen.main.bounds.height
+            cardHeight: geo.size.height,
+            cardWidth: geo.size.width
         )
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 4)
@@ -156,26 +160,37 @@ struct SwipeDiscoveryView: View {
         .opacity(stackedOpacity(for: index, dragProgress: dragProgress))
         .scaleEffect(stackedScale(for: index, dragProgress: dragProgress))
     }
-
+    
+    
     // MARK: - Stack presentation helpers
     private func stackedYOffset(for index: Int, dragProgress: Double) -> CGFloat {
-        // same math as before
-        -25 * CGFloat(Double(index) - dragProgress)
+        // Cards line up exactly at rest; as you drag, cards behind
+        // lift slightly into view like Tinder.
+        let lift: CGFloat = 14
+        return -CGFloat(dragProgress) * lift * CGFloat(index)
     }
-
+    
     private func stackedRotation(for index: Int, dragProgress: Double) -> Double {
-        5.0 * (Double(index) - dragProgress)
+        // No rotation at rest; very slight as the next card comes in.
+        let maxRotation: Double = 4
+        return maxRotation * dragProgress * Double(index)
     }
-
+    
     private func stackedOpacity(for index: Int, dragProgress: Double) -> Double {
-        max(0, 1 - 0.33 * (Double(index) - dragProgress))
+        // Slightly dim cards further back; brighten a touch as they move up.
+        let base = 1.0 - 0.15 * Double(index)
+        return max(0, base + 0.05 * dragProgress)
     }
-
+    
     private func stackedScale(for index: Int, dragProgress: Double) -> CGFloat {
-        let shrink = 0.05 * CGFloat(index)
-        return (1 - shrink) + 0.05 * CGFloat(dragProgress)
+        // Full size at rest. As the top card is dragged away,
+        // cards behind shrink just a bit to give depth.
+        let maxShrink: CGFloat = 0.04
+        let shrink = maxShrink * CGFloat(index) * CGFloat(dragProgress)
+        return 1 - shrink
     }
-
+    
+    
     // MARK: - remove + animate offscreen
     private func swipeAndRemove(_ dir: SwipeDirection,
                                 card: SwipeCardModel,
@@ -183,28 +198,28 @@ struct SwipeDiscoveryView: View {
     {
         // fling amount
         let flingX: CGFloat = dir == .right ? geo.size.width * 1.2 : -geo.size.width * 1.2
-
+        
         withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
             settledOffset.width = flingX
         }
-
+        
         // mutate deck immediately after fling decision
         removeCard(card, direction: dir)
-
+        
         // reset state for next card
         dragProgress = 0
         settledOffset = .zero
     }
-
+    
     private func removeCard(_ card: SwipeCardModel, direction: SwipeDirection) {
         guard let idx = cards.firstIndex(of: card) else { return }
-
+        
         switch direction {
         case .right:
             // Favourite: remove cards from deck and show match sheet
             favourites.add(card.listing)
             likedCard = cards.remove(at: idx)
-        
+            
         case.left:
             // Soft block: take it off front, push to back
             let blocked = cards.remove(at: idx)
@@ -280,182 +295,171 @@ struct SwipeDiscoveryView: View {
     }
 }
 
+
 // MARK: - ONE CARD VIEW
-// Scrollable card content: carousel + details.
+
+
 struct CardDetailView: View {
     let listing: RentalListing
-    let width: CGFloat
-    let height: CGFloat
-
-    @State private var photoIndex: Int = 0
+    let cardHeight: CGFloat
+    let cardWidth: CGFloat
+    @State private var photoIndex = 0
+    
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
 
-                // IMAGE CAROUSEL
-                TabView(selection: $photoIndex) {
-                    ForEach(listing.photoNames.indices, id: \.self) { idx in
-                        Image(listing.photoNames[idx])
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: width, height: width * 0.75)
-                            .clipped()
-                            .tag(idx)
-                    }
+            // --- PHOTO SECTION ---
+            PhotoCarouselSection(
+                photoNames: listing.photoNames,
+                width: cardWidth,
+                height: cardWidth * 0.75
+            )
+
+            
+
+            // --- SCROLLABLE CONTENT SECTION ---
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 16) {
+
+                    TitleSection(listing: listing)
+                    PriceSection(listing: listing)
+                    AmenitiesSection(listing: listing)
+                    AboutSection(listing: listing)
+
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-                .frame(width: width, height: width * 0.75)
-                .background(Color.black)
-
-                // DETAILS
-                listingDetailsSection(listing: listing)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(.systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .padding(.top, 16)
-                    .padding(.horizontal, 16)
-
-                Spacer(minLength: 40)
-            }
-            .frame(width: width)
-            .background(Color(.systemBackground))
-        }
-        .frame(width: width, height: height)
-        .background(Color.black)
-    }
-
-    @ViewBuilder
-    private func listingDetailsSection(listing: RentalListing) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Title / area
-            Text(listing.title)
-                .font(.title2.weight(.bold))
-                .foregroundColor(.primary)
-
-            Text(listing.neighborhood)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            Divider()
-
-            // Price / beds / baths row
-            HStack(alignment: .firstTextBaseline) {
-                Text("\(Int(listing.pricePerMonth)) CAD/mo")
-                    .font(.headline)
-                Spacer()
-                Text("\(listing.bedrooms) bd • \(listing.bathrooms, specifier: "%.1f") ba")
-                    .font(.subheadline)
-                    .foregroundColor(.primary)
-            }
-
-            Text("~\(listing.walkTimeToCampusMinutes) min walk to campus")
-                .font(.footnote)
-                .foregroundColor(.secondary)
-
-            Divider()
-
-            Text("Amenities")
-                .font(.headline)
-                .foregroundColor(.primary)
-
-            AmenityChipsView(amenities: listing.amenities)
-
-            Divider()
-
-            HStack(spacing: 8) {
-                Text("Rating: \(listing.rating, specifier: "%.1f") / 5")
-                    .foregroundColor(.primary)
-                    .font(.subheadline)
-
-                if listing.isVerified {
-                    Label("Verified listing", systemImage: "checkmark.seal.fill")
-                        .font(.footnote.bold())
-                        .foregroundColor(.green)
-                } else {
-                    Label("Not verified", systemImage: "exclamationmark.triangle.fill")
-                        .font(.footnote.bold())
-                        .foregroundColor(.orange)
-                }
-            }
-
-            Text("About this place")
-                .font(.headline)
+                .padding(.horizontal, 20)
                 .padding(.top, 12)
-
-            Text("""
-Spacious, bright, and student-friendly. Landlord is responsive, utilities included, and there's a quiet study lounge with decent Wi-Fi. Pets allowed on approval.
-""")
-            .font(.body)
-            .foregroundColor(.primary)
-
-            Spacer(minLength: 24)
+                .padding(.bottom, 40)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.black)
         }
-        .padding(16)
+        .frame(width: cardWidth, height: cardHeight)
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .contentShape(Rectangle())
     }
 }
 
-// MARK: - Amenity chips with simple line wrapping
+struct PhotoCarouselSection: View {
+    let photoNames: [String]
+    let width: CGFloat
+    let height: CGFloat
+    @State private var index = 0
+    
+    private var innerWidth: CGFloat { width - 32 }
+    private var innerHeight: CGFloat { innerWidth * (height / width) }
+
+    var body: some View {
+        TabView(selection: $index) {
+            ForEach(photoNames.indices, id: \.self) { i in
+                Image(photoNames[i])
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: innerWidth, height: innerHeight)
+                    .clipped()
+                    .tag(i)
+            }
+        }
+        .tabViewStyle(PageTabViewStyle())
+        .frame(width: innerWidth, height: innerHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+}
+
+struct TitleSection: View {
+    let listing: RentalListing
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(listing.title)
+                .font(.title2.bold())
+            Text(listing.neighborhood)
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+        }
+    }
+}
+
+struct PriceSection: View {
+    let listing: RentalListing
+
+    var body: some View {
+        HStack {
+            Text("\(Int(listing.pricePerMonth)) CAD/mo")  // <- pricePerMonth
+                            .font(.title3.bold())
+
+            Spacer()
+
+            Text("\(listing.bedrooms) bd • \(bathroomsText(for: listing.bathrooms)) ba")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+        }
+    }
+    
+    private func bathroomsText(for value: Double) -> String {
+        // If it's an integer (2.0), show "2"
+        if value.rounded(.towardZero) == value {
+            return "\(Int(value))"
+        } else {
+            // Otherwise show one decimal place (e.g. 1.5)
+            return String(format: "%.1f", value)
+        }
+    }
+
+}
+
+struct AboutSection: View {
+    let listing: RentalListing
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("About this place")
+                .font(.headline)
+
+            Text("Here is where the landlord would submit a description of this listing.")     // <- was listing.description
+                            .font(.body)
+                            .foregroundColor(.gray)
+        }
+    }
+}
+
+struct AmenitiesSection: View {
+    let listing: RentalListing
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Amenities")
+                .font(.headline)
+
+            AmenityChipsView(amenities: listing.amenities)
+        }
+    }
+}
+
+// MARK: - Amenity chips with simple grid layout
 struct AmenityChipsView: View {
     let amenities: [ListingAmenity]
 
-    var body: some View {
-        // We'll wrap manually into rows so we don't need custom Layout.
-        let chipViews = amenities.map { amenityChip($0) }
+    private let columns = [
+        GridItem(.adaptive(minimum: 120), spacing: 8)
+    ]
 
-        // Break into lines of ~3-4 chips depending on length
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(lines(for: chipViews), id: \.self.indices) { line in
-                HStack(spacing: 8) {
-                    ForEach(line.indices, id: \.self) { idx in
-                        line[idx]
-                    }
-                }
+    var body: some View {
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
+            ForEach(amenities, id: \.self) { amenity in
+                Label(amenity.label, systemImage: amenity.icon)
+                    .font(.caption)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .foregroundColor(.primary)
+                    .background(
+                        Capsule()
+                            .fill(Color(.systemGray6))
+                    )
             }
         }
     }
-
-    // make a chip view for an amenity
-    private func amenityChip(_ amenity: ListingAmenity) -> some View {
-        Label(amenity.label, systemImage: amenity.icon)
-            .font(.caption)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .foregroundColor(.primary)
-            .background(
-                Capsule()
-                    .fill(Color(.systemGray6))
-            )
-    }
-
-    // very simple greedy line breaker by width guess:
-    // for now we'll just chunk every 3 chips which is reliable and fast.
-    // you can get fancier later by measuring text.
-    private func lines(for chips: [AnyView]) -> [[AnyView]] {
-        // chunk size of 3 to avoid layout protocol complexity
-        let chunkSize = 3
-        var result: [[AnyView]] = []
-        var idx = 0
-        while idx < chips.count {
-            let end = min(idx + chunkSize, chips.count)
-            result.append(Array(chips[idx..<end]))
-            idx = end
-        }
-        return result
-    }
-
-    // Helper to make type-erased views for storage
-    private func amenityChip(_ amenity: ListingAmenity) -> AnyView {
-        AnyView(
-            Label(amenity.label, systemImage: amenity.icon)
-                .font(.caption)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .foregroundColor(.primary)
-                .background(
-                    Capsule()
-                        .fill(Color(.systemGray6))
-                )
-        )
-    }
 }
+

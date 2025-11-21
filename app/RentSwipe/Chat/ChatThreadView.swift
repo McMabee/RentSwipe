@@ -3,6 +3,7 @@ import SwiftUI
 struct ChatThreadView: View {
     @EnvironmentObject private var chat: ChatStore
     @EnvironmentObject private var router: AppRouter
+
     let threadID: UUID
     let title: String
 
@@ -15,68 +16,57 @@ struct ChatThreadView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollViewReader { proxy in
+            ScrollViewReader { scroll in
                 ScrollView {
                     LazyVStack(spacing: 8) {
                         ForEach(messages) { m in
-                            MessageBubble(
-                                message: m,
-                                isMine: m.senderID == chat.me?.id
-                            )
-                            .id(m.id)
-                            .padding(.horizontal, 12)
+                            MessageBubble(message: m, isMine: chat.me?.id == m.senderID)
+                                .id(m.id)
                         }
-                    }.padding(.vertical, 10)
+                    }
+                    .padding()
                 }
                 .onChange(of: messages.count) { _ in
-                    if let last = messages.last { withAnimation { proxy.scrollTo(last.id, anchor: .bottom) } }
-                }
-                .onAppear {
-                    if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
-                }
-            }
-
-            HStack(spacing: 8) {
-                TextField("Message…", text: $draft, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($focused)
-
-                Button {
-                    let text = draft; draft = ""
-                    chat.send(in: threadID, text: text)
-                } label: { Image(systemName: "paperplane.fill") }
-                .buttonStyle(.borderedProminent)
-                .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(Color(.systemBackground))
-        }
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    handleBack()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
+                    if let last = messages.last {
+                        withAnimation {
+                            scroll.scrollTo(last.id, anchor: .bottom)
+                        }
                     }
                 }
             }
+
+            Divider()
+
+            HStack(spacing: 12) {
+                TextField("Message...", text: $draft, axis: .vertical)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($focused)
+                    .lineLimit(1...4)
+
+                Button {
+                    send()
+                } label: {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                }
+                .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(.thinMaterial)
+        }
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .onDisappear {
+            // Decide what “back” should do based on how we got here
+            router.handleChatBack()
         }
     }
 
-    private func handleBack() {
-        switch router.chatLaunchSource {
-        case .listing:
-            router.selectedTab = .home
-            router.clearChatDeepLink()
-        case .none:
-            // default behavior: just pop
-            // the system back button will handle this, but we keep symmetry
-            router.clearChatDeepLink()
-        }
+    private func send() {
+        let trimmed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        chat.send(in: threadID, text: trimmed)
+        draft = ""
     }
 }

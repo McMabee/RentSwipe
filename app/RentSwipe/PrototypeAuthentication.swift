@@ -15,7 +15,7 @@ enum AuthenticationError: LocalizedError {
 }
 
 protocol PrototypeAuthenticating {
-    func authenticate(email: String, password: String, role: AccountRole) throws -> PrototypeUser
+    func authenticate(email: String, password: String) throws -> PrototypeUser
 }
 
 struct PrototypeLocalAuthService: PrototypeAuthenticating {
@@ -47,20 +47,31 @@ struct PrototypeLocalAuthService: PrototypeAuthenticating {
         ]
     }()
 
-    func authenticate(email: String, password: String, role: AccountRole) throws -> PrototypeUser {
+    func authenticate(email: String, password: String) throws -> PrototypeUser {
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
-        guard let account = accountsByRole[role]?[normalizedEmail] else {
+        // Find the account regardless of role
+        var matched: (role: AccountRole, account: PrototypeAccount)?
+
+        for (role, lookup) in accountsByRole {
+            if let account = lookup[normalizedEmail] {
+                matched = (role, account)
+                break
+            }
+        }
+
+        guard let match = matched else {
             throw AuthenticationError.accountNotFound
         }
 
-        guard password == account.password else {
+        guard password == match.account.password else {
             throw AuthenticationError.invalidCredentials
         }
 
-        return PrototypeUser(email: account.email, displayName: account.displayName, role: role)
+        return PrototypeUser(email: match.account.email, displayName: match.account.displayName, role: match.role)
     }
 }
+
 
 private struct PrototypeAccount {
     let email: String

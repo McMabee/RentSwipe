@@ -9,14 +9,15 @@ final class PrototypeSessionStore: ObservableObject {
         self.authService = authService
     }
     
-    func login(email: String, password: String, role: AccountRole) throws {
-        currentUser = try authService.authenticate(email: email, password: password, role: role)
+    func login(email: String, password: String) throws {
+        currentUser = try authService.authenticate(email: email, password: password)
     }
     
     func logout() {
         currentUser = nil
     }
 }
+
 
 @available(iOS 16.4, *)
 @main
@@ -25,24 +26,24 @@ struct RentSwipeApp: App {
     @StateObject private var favouritesStore = FavouritesStore()
     @StateObject private var chatStore = ChatStore()
     @StateObject private var router = AppRouter()
-
     
+    @Namespace private var splashNamespace
     @State private var showSplash: Bool = true
     
     var body: some Scene {
         WindowGroup {
             ZStack {
                 if showSplash {
-                    SplashView(finished: splashFinishedBinding)
-                        .transition(.opacity)
+                    // Only splash is visible
+                    SplashView(finished: splashFinishedBinding, namespace: splashNamespace)
                         .zIndex(1)
-                }
-                else if sessionStore.currentUser == nil {
-                    LoginEntryView()
+                } else if sessionStore.currentUser == nil {
+                    // Login flow (no opacity hack)
+                    LoginEntryView(namespace: splashNamespace)
                         .environmentObject(sessionStore)
-                }
-                else {
-                    // user is logged in
+                        .environmentObject(router)
+                } else {
+                    // Logged-in experience
                     PrototypeHomeView(user: sessionStore.currentUser!)
                         .environmentObject(sessionStore)
                         .environmentObject(favouritesStore)
@@ -58,7 +59,7 @@ struct RentSwipeApp: App {
             get: { !showSplash },
             set: { newFinished in
                 if newFinished {
-                    withAnimation(.easeOut(duration: 0.4)) {
+                    withAnimation(.easeInOut(duration: 0.7)) {
                         showSplash = false
                     }
                 }
@@ -82,8 +83,6 @@ struct PrototypeHomeView: View {
             if user.role == .tenant {
                 NavigationStack{
                     SwipeDiscoveryView(listings: SampleData.tenantListings)
-                        .navigationTitle("Discover")
-                        .toolbar{ logoutToolbar }
                 }
                 .tabItem {
                     Label("Discover", systemImage: "magnifyingglass")
@@ -94,7 +93,6 @@ struct PrototypeHomeView: View {
                 if user.role == .tenant {
                     if #available(iOS 17.0, *) {
                         FavouritesListView()
-                            .toolbar { logoutToolbar }
                             .navigationTitle("Favourites")
                     } else {
                         // Fallback on earlier versions
@@ -102,7 +100,6 @@ struct PrototypeHomeView: View {
                 } else {
                     roleDashboard
                         .navigationTitle("Home")
-                        .toolbar { logoutToolbar }
                 }
             }
             .tabItem {
@@ -118,7 +115,6 @@ struct PrototypeHomeView: View {
                 NavigationStack {
                     AnalyticsOverviewView(metrics: SampleData.analytics, role: user.role)
                         .navigationTitle("Analytics")
-                        .toolbar { logoutToolbar }
                 }
                 .tabItem {
                     Label("Analytics", systemImage: "chart.bar.xaxis")
@@ -129,7 +125,6 @@ struct PrototypeHomeView: View {
                     if #available(iOS 17.0, *) {
                         ChatsHomeView()
                             .navigationTitle("Chats")
-                            .toolbar { logoutToolbar }
                     } else {
                         // Fallback on earlier versions
                     }
@@ -139,13 +134,14 @@ struct PrototypeHomeView: View {
             }
             
             NavigationStack {
-                NotificationCenterView(role: user.role, notifications: $notifications)
-                    .navigationTitle("Inbox")
-                    .toolbar { logoutToolbar }
+                ProfileView(user: user)
+                    .navigationTitle("Profile")
             }
             .tabItem {
-                Label("Inbox", systemImage: notifications.contains(where: { !$0.isRead }) ? "bell.badge.fill" : "bell")
+                Label("Profile", systemImage: "person.crop.circle")
             }
+            // keep using the same router case so you don't have to touch AppRouter
+            .tag(AppRouter.Tab.inbox)
         }
         .onAppear {chatStore.setCurrentUser(user)}
     }
@@ -158,17 +154,6 @@ struct PrototypeHomeView: View {
             return "Home"
         case .admin:
             return "Admin Control"
-        }
-    }
-    
-    @ToolbarContentBuilder
-    private var logoutToolbar: some ToolbarContent {
-        ToolbarItem(placement: .navigationBarTrailing) {
-            Button(role: .destructive) {
-                sessionStore.logout()
-            } label: {
-                Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
-            }
         }
     }
     
@@ -766,31 +751,35 @@ private struct TenantFilterSheet: View {
 // MARK: - Landlord Home
 
 struct LandlordHomeView: View {
+    @EnvironmentObject private var router: AppRouter
+    
     @State private var properties: [LandlordProperty] = SampleData.landlordProperties
     @State private var leads: [TenantLead] = SampleData.tenantLeads
-
+    
+    @State private var deeplinkProperty: LandlordProperty?
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Listings overview (compact)
                     SectionCard(title: "Listings") {
-                        VStack(spacing: 12) {
-                            ForEach(properties.prefix(3)) { p in
-                                ListingChipRow(
-                                    title: p.title,
-                                    statusText: p.status.rawValue,
-                                    statusColor: color(for: p.status)
-                                )
-                            }
-                            NavigationLink {
-                                ListingsListView(properties: properties)
-                            } label: {
-                                SectionSeeAllRow()
-                            }
+                        
+                        ForEach(properties.prefix(3)) { p in
+                            ListingChipRow(
+                                title: p.title,
+                                statusText: p.status.rawValue,
+                                statusColor: color(for: p.status)
+                            )
                         }
+                        NavigationLink {
+                            ListingsListView(properties: properties)
+                        } label: {
+                            SectionSeeAllRow()
+                        }
+                        
                     }
-
+                    
                     // Tenant pipeline (max 3)
                     SectionCard(title: "Tenant Pipeline") {
                         VStack(spacing: 12) {
@@ -810,9 +799,38 @@ struct LandlordHomeView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Home")
+            .onChange(of: router.pendingListingID) { newID in
+                guard let id = newID,
+                      let property = properties.first(where: { $0.id == id}) else { return }
+                deeplinkProperty = property
+                router.pendingListingID = nil
+            }
+            .background(
+                NavigationLink(
+                    isActive: Binding(
+                        get: { deeplinkProperty != nil },
+                        set: { isActive in
+                            if !isActive {
+                                deeplinkProperty = nil
+                            }
+                        }
+                    ),
+                    destination: {
+                        if let property = deeplinkProperty {
+                            ListingFocusView(property: property)
+                        } else {
+                            EmptyView()
+                        }
+                    },
+                    label: {
+                        EmptyView()
+                    }
+                )
+                .hidden()
+            )
         }
     }
-
+    
     private func color(for status: LandlordProperty.Status) -> Color {
         switch status {
         case .live:           return .green
@@ -827,7 +845,7 @@ struct LandlordHomeView: View {
 private struct SectionCard<Content: View>: View {
     let title: String
     @ViewBuilder var content: Content
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
@@ -859,7 +877,7 @@ private struct ListingChipRow: View {
     let title: String
     let statusText: String
     let statusColor: Color
-
+    
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "house")
@@ -879,7 +897,7 @@ private struct ListingChipRow: View {
 
 private struct TenantPipelineRow: View {
     let lead: TenantLead
-
+    
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "person.circle.fill")
@@ -899,7 +917,7 @@ private struct TenantPipelineRow: View {
                 .foregroundColor(stageColor(lead.stage))
         }
     }
-
+    
     private func stageColor(_ s: TenantLead.Stage) -> Color {
         switch s {
         case .new:             return .gray
@@ -914,7 +932,7 @@ private struct TenantPipelineRow: View {
 
 struct ListingsListView: View {
     let properties: [LandlordProperty]
-
+    
     var body: some View {
         List(properties) { p in
             NavigationLink {
@@ -937,7 +955,7 @@ struct ListingsListView: View {
         }
         .navigationTitle("Listings")
     }
-
+    
     private func color(for status: LandlordProperty.Status) -> Color {
         switch status {
         case .live:           return .green
@@ -951,7 +969,7 @@ struct ListingsListView: View {
 struct ListingFocusView: View {
     let property: LandlordProperty
     @EnvironmentObject private var router: AppRouter
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -967,7 +985,7 @@ struct ListingFocusView: View {
         .navigationTitle("Listing")
         .navigationBarTitleDisplayMode(.inline)
     }
-
+    
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(property.title).font(.title2.weight(.semibold))
@@ -978,7 +996,7 @@ struct ListingFocusView: View {
                 .background(Color(.systemGray5), in: Capsule())
         }
     }
-
+    
     private var analytics: some View {
         HStack(spacing: 12) {
             statChip(label: "Views", value: "\(property.analytics.views)")
@@ -986,7 +1004,7 @@ struct ListingFocusView: View {
             statChip(label: "Chats", value: property.analytics.chatThreadID == nil ? "0" : "1")
         }
     }
-
+    
     private func statChip(label: String, value: String) -> some View {
         VStack {
             Text(value).font(.headline)
@@ -996,12 +1014,12 @@ struct ListingFocusView: View {
         .padding()
         .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
     }
-
+    
     private func chatPreview(chatID: UUID) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Linked Chat")
                 .font(.title3.weight(.semibold))
-
+            
             Button {
                 router.openChat(threadID: chatID, fromListing: property.id)
             } label: {
@@ -1033,7 +1051,7 @@ struct ListingFocusView: View {
 
 struct TenantPipelineView: View {
     let leads: [TenantLead]
-
+    
     var body: some View {
         List(leads) { lead in
             NavigationLink {
@@ -1056,7 +1074,7 @@ struct TenantPipelineView: View {
         }
         .navigationTitle("Tenant Pipeline")
     }
-
+    
     private func stageColor(_ s: TenantLead.Stage) -> Color {
         switch s {
         case .new:             return .gray
@@ -1079,7 +1097,7 @@ struct TenantFocusView: View {
         case .sentApplication: return nil
         }
     }
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -1095,7 +1113,7 @@ struct TenantFocusView: View {
         .navigationTitle("Applicant")
         .navigationBarTitleDisplayMode(.inline)
     }
-
+    
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(lead.name).font(.title2.weight(.semibold))
@@ -1106,7 +1124,7 @@ struct TenantFocusView: View {
                 .background(Color(.systemGray5), in: Capsule())
         }
     }
-
+    
     private var info: some View {
         SectionCard(title: "Information") {
             VStack(alignment: .leading, spacing: 8) {
@@ -1116,7 +1134,7 @@ struct TenantFocusView: View {
             }
         }
     }
-
+    
     private var notifications: some View {
         SectionCard(title: "Notifications") {
             VStack(alignment: .leading, spacing: 8) {
@@ -1126,7 +1144,7 @@ struct TenantFocusView: View {
             .font(.subheadline)
         }
     }
-
+    
     private var pipelineActions: some View {
         SectionCard(title: "Pipeline") {
             HStack {
@@ -1140,8 +1158,8 @@ struct TenantFocusView: View {
             // Confirmation
             .confirmationDialog(
                 nextStage != nil
-                    ? "Advance applicant to “\(nextStage!.rawValue)”?"
-                    : "Already at final stage",
+                ? "Advance applicant to “\(nextStage!.rawValue)”?"
+                : "Already at final stage",
                 isPresented: $showAdvanceConfirm,
                 titleVisibility: .visible
             ) {
@@ -1154,8 +1172,8 @@ struct TenantFocusView: View {
             }
         }
     }
-
-
+    
+    
     private var documents: some View {
         SectionCard(title: "Documents") {
             VStack(alignment: .leading, spacing: 8) {
@@ -1166,7 +1184,7 @@ struct TenantFocusView: View {
             }
         }
     }
-
+    
     private var chatCTA: some View {
         SectionCard(title: "Chat") {
             VStack(alignment: .leading, spacing: 8) {
@@ -1181,7 +1199,7 @@ struct TenantFocusView: View {
             }
         }
     }
-
+    
     private func row(_ k: String, _ v: String) -> some View {
         HStack {
             Text(k).foregroundStyle(.secondary)
@@ -1189,7 +1207,7 @@ struct TenantFocusView: View {
             Text(v)
         }
     }
-
+    
     private func advanceStage() {
         switch lead.stage {
         case .new:             lead.stage = .preQualified
@@ -1247,7 +1265,7 @@ private struct LandlordPropertyCard: View {
             HStack {
                 MetricPill(title: "Inquiries", value: "\(property.analytics.inquiriesThisWeek) /wk", color: .teal)
                 MetricPill(title: "Favorites", value: "\(property.analytics.favourites)", color: .indigo)
-
+                
             }
             
             VStack(alignment: .leading, spacing: 6) {
@@ -1617,6 +1635,216 @@ private struct RoommateQAResult: View {
         .shadow(color: .black.opacity(0.03), radius: 6, y: 3)
     }
 }
+
+// MARK: - Profile View
+struct ProfileView: View {
+    let user: PrototypeUser
+    @EnvironmentObject private var sessionStore: PrototypeSessionStore
+
+    var body: some View {
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+
+            VStack(spacing: 12) {
+                // Scrollable content
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 20) {
+                        profileHeader
+                            .padding(.bottom, 4)
+
+                        profileSection
+                        accountSection
+                        appSection
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 40) // smaller than before so the gap above Logout is tighter
+                }
+
+                // Logout pinned to bottom
+                logoutButton
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 24)
+            }
+        }
+    }
+
+    // MARK: - Pieces
+
+    private var profileHeader: some View {
+        HStack(alignment: .center, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color(.secondarySystemBackground))
+                    .frame(width: 60, height: 60)
+
+                Image(systemName: "person.fill")
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundColor(user.role.accentColor)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(user.displayName)
+                    .font(.title3.weight(.semibold))
+
+                Text(user.role.displayLabel)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+
+                Text(user.email)
+                    .font(.footnote)
+                    .foregroundStyle(.tertiary)
+            }
+
+            Spacer()
+        }
+    }
+
+    private var profileSection: some View {
+        ProfileCard(title: "Profile") {
+            SettingRow(
+                icon: "person.crop.circle",
+                title: "Personal information",
+                subtitle: "Name, email and contact details"
+            )
+
+            Divider().background(Color(.separator))
+
+            SettingRow(
+                icon: "house.fill",
+                title: "Rental preferences",
+                subtitle: "Neighborhood, budget and commute"
+            )
+        }
+    }
+
+    private var accountSection: some View {
+        ProfileCard(title: "Account") {
+            SettingRow(
+                icon: "bell.fill",
+                title: "Notifications",
+                subtitle: "Push, email and in-app alerts"
+            )
+
+            Divider().background(Color(.separator))
+
+            SettingRow(
+                icon: "lock.fill",
+                title: "Security",
+                subtitle: "Password and device sign-ins"
+            )
+
+            if user.role == .landlord {
+                Divider().background(Color(.separator))
+
+                SettingRow(
+                    icon: "creditcard.fill",
+                    title: "Payouts & billing",
+                    subtitle: "Payout account and invoices"
+                )
+            }
+        }
+    }
+
+    private var appSection: some View {
+        ProfileCard(title: "App") {
+            SettingRow(
+                icon: "questionmark.circle",
+                title: "Help & support",
+                subtitle: "FAQ and contact support"
+            )
+
+            Divider().background(Color(.separator))
+
+            SettingRow(
+                icon: "info.circle",
+                title: "About RentSwipe",
+                subtitle: "Version, terms and privacy"
+            )
+        }
+    }
+
+    private var logoutButton: some View {
+        Button {
+            sessionStore.logout()
+        } label: {
+            Text("Log out")
+                .font(.headline.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color(.secondarySystemBackground))
+                )
+                .foregroundColor(.red)
+        }
+    }
+}
+
+// MARK: - Shared UI for Profile
+
+struct ProfileCard<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+
+            VStack(spacing: 0) {
+                content
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color(.secondarySystemBackground))
+            )
+        }
+    }
+}
+
+struct SettingRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(.tertiarySystemBackground))
+                    .frame(width: 34, height: 34)
+
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+            }
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.vertical, 8) // row height, tweak up/down if you want
+        .contentShape(Rectangle())
+    }
+}
+
+
+
 
 // MARK: - Analytics & Notifications
 

@@ -5,41 +5,58 @@ struct ChatsHomeView: View {
     @EnvironmentObject private var chat: ChatStore
     @EnvironmentObject private var router: AppRouter
     
+    @State private var deeplinkThread: ChatThread? = nil
+    
     @State private var path: [UUID] = []
     
     var body: some View {
-        NavigationStack(path: $path){
-            List {
-                if chat.threads.isEmpty {
-                    ContentUnavailableView("No chats yet", systemImage: "bubble",
-                                           description: Text("Start a conversation from a listing."))
-                } else {
-                    ForEach(chat.threads) { t in
-                        NavigationLink(value: t.id) {
-                            ChatRow(thread: t)
+        ZStack{
+            chatsList
+            NavigationLink(
+                isActive: Binding(
+                    get: { deeplinkThread != nil },
+                    set: { isActive in
+                        if !isActive {
+                            deeplinkThread = nil
                         }
                     }
-                }
-            }
-            .navigationTitle("Chats")
-            .navigationDestination(for: UUID.self) { id in
-                if let thread = chat.threads.first(where: { $0.id == id }) {
-                    ChatThreadView(threadID: id, title: thread.title)
-                        .environmentObject(router)     // pass router down
-                } else {
-                    Text("Chat not found")
-                }
-            }
-            .onChange(of: router.pendingChatID) { _, newValue in
-                if let id = newValue, chat.threads.contains(where: { $0.id == id }) {
-                    path = []           // reset to ensure a clean push
-                    path.append(id)     // push the thread
-                }
-            }
+                ),
+                destination: {
+                    if let thread = deeplinkThread {
+                        ChatThreadView(threadID: thread.id, title: thread.title)
+                    } else {
+                        EmptyView()
+                    }
+                },
+                label: { EmptyView() }
+            )
+            .hidden()
+        }
+        .onChange(of: router.pendingChatID) { newID in
+            // When router.openChat(...) is called, this will fire
+            guard
+                let id = newID,
+                let thread = chat.threads.first(where: { $0.id == id })
+            else { return }
             
+            deeplinkThread = thread
+            // We *don’t* clear pendingChatID here; handleChatBack will do that.
+        }
+    }
+    
+    private var chatsList: some View {
+        // Whatever you already had (list of threads, etc.)
+        // For example:
+        List(chat.threads) { thread in
+            NavigationLink {
+                ChatThreadView(threadID: thread.id, title: thread.title)
+            } label: {
+                Text(thread.title)
+            }
         }
     }
 }
+
 
 private struct ChatRow: View {
     let thread: ChatThread
