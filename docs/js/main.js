@@ -198,9 +198,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var signInBtn = document.getElementById("sign-in-btn");
     var createAccountBtn = document.getElementById("create-account-btn");
 
-    // 👉 IMPORTANT: replace this with your real worker URL (NO trailing slash)
-    // Example: "https://rentswipe-auth.rentswipe.workers.dev"
-    var WORKER_BASE_URL = "https://rentswipe-auth.rentswipe.workers.dev";
+    //var WORKER_BASE_URL = "https://rentswipe-auth.rentswipe.workers.dev";
+    var WORKER_BASE_URL = "http://127.0.0.1:8787"
 
     function showLogin() {
       authCard.classList.add("auth-mode-login");
@@ -393,6 +392,30 @@ document.addEventListener('DOMContentLoaded', function () {
     if (createAccountBtn) {
       createAccountBtn.addEventListener("click", signup);
     }
+
+    /* --- Logout via nav item on home.html --- */
+    (function () {
+      const logoutLink = document.getElementById("logout-link");
+      if (!logoutLink) return; // only present on home.html
+
+      logoutLink.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        const confirmed = window.confirm("Are you sure you want to log out?");
+        if (!confirmed) return;
+
+        try {
+          localStorage.removeItem("rentswipe-user");
+          localStorage.removeItem("rentswipe-token");
+        } catch (err) {
+          console.error("Error clearing user session", err);
+        }
+
+        // Send user back to the main landing page
+        window.location.href = "index.html";
+      });
+    })();
+
 
     // Default view
     showSignup();
