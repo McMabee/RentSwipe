@@ -198,8 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var signInBtn = document.getElementById("sign-in-btn");
     var createAccountBtn = document.getElementById("create-account-btn");
 
-    //var WORKER_BASE_URL = "https://rentswipe-auth.rentswipe.workers.dev";
-    var WORKER_BASE_URL = "http://127.0.0.1:8787"
+    var WORKER_BASE_URL = "https://rentswipe-auth.rentswipe.workers.dev";
 
     function showLogin() {
       authCard.classList.add("auth-mode-login");
@@ -296,8 +295,6 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         }
 
-        // ✅ On success, go to your "still developing" or home page
-        // Save user session
         if (data.user) {
           localStorage.setItem("rentswipe-user", JSON.stringify(data.user));
         }
