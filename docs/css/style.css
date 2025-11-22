@@ -303,6 +303,25 @@ body.auth-page .nav-toggle {
   display:none !important;
 }
 
+/* Re-enable nav + menu on the logged-in home page */
+body.home-page .site-nav,
+body.home-page .nav-toggle {
+  display: block !important;
+}
+
+/* Keep responsive behavior (mobile: hidden until menu opened) */
+@media (max-width: 800px) {
+  body.home-page .site-nav {
+    display: none !important;
+  }
+  body.home-page .site-nav[aria-hidden="false"] {
+    display: block !important;
+  }
+  body.home-page .nav-toggle {
+    display: inline-flex !important;
+  }
+}
+
 .auth-form .panel-intro,
 .auth-form .auth-left,
 .auth-form .panel-info {
