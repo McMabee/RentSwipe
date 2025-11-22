@@ -1,0 +1,18 @@
+
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "rentswipe-auth",
+	"main": "src/index.js",
+	"compatibility_date": "2025-11-13",
+	"d1_databases": [
+    	{
+    		"binding": "DB",                 // this is env.DB in your worker code
+      		"database_name": "rentswipe-db", // or whatever you named it
+      		"database_id": "f7f7b3f4-aaf0-4156-a014-df4e5998b1f3" // from `wrangler d1 create`
+    	}
+  	],
+	"observability": {
+		"enabled": true
+	}
+	
+}

@@ -343,12 +343,31 @@ body.auth-page .nav-toggle {
   justify-content:center;
 }
 
+/* Centered variant for the coming-soon card on home.html */
+.auth-card--center{
+  grid-template-columns: 1fr;          /* single-column card */
+  max-width: 720px;                    /* a bit narrower looks nicer */
+}
+
+.auth-card--center .auth-side--center{
+  align-items: center;
+  text-align: center;
+  max-width: 40rem;
+  margin-inline: auto;
+}
+
+.auth-card--center .auth-side--center .btn{
+  align-self: center;                  /* center the button too */
+}
+
+
 /* right column is the sliding area */
 .auth-form{
   grid-column:2 / 3;
   position:relative;
-  overflow:hidden;
-  min-height:480px;                /* same height in both modes */
+  overflow-x:hidden;
+  overflow-y:auto;
+  min-height:520px;                /* same height in both modes */
 }
 
 /* panels layout + animation (only right side moves) */
@@ -444,6 +463,92 @@ body.auth-page .input{
   margin-top:.75rem;
 }
 
+/* Account type segmented control */
+.account-type-group {
+  margin-top: 1rem;
+}
+
+.account-type-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.account-type-options {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 260px;          /* total width of both pills together */
+  margin-left: 0;            /* align with Create account button */
+  margin-right: auto;
+}
+
+@media (min-width: 640px) {
+  .account-type-options {
+    flex-direction: row;
+  }
+}
+
+.account-type-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;   /* center text */
+  flex: 1 1 0;               /* equal width */
+  height: var(--control-height);  /* same height as header controls */
+  padding: 0;                /* height controls vertical size */
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
+}
+
+/* hide the native radio, but keep it focusable for a11y */
+.account-type-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.account-type-option span {
+  pointer-events: none;
+}
+
+/* focus ring when tabbing */
+.account-type-option:focus-within {
+  outline: 2px solid rgba(96, 165, 250, 0.7);
+  outline-offset: 2px;
+}
+
+/* selected state – requires modern browsers (:has) */
+.account-type-option:has(input:checked) {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.6);
+  transform: translateX(2px);
+}
+
+/* day theme tweaks – keep contrast clean */
+html[data-theme="day"] .account-type-option {
+  background: #ffffff;
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+html[data-theme="day"] .account-type-option:has(input:checked) {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+
 body.auth-page .input label{
   font-size:.85rem;
   color:var(--muted);
@@ -497,7 +602,8 @@ body.auth-page .btn{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding:.6rem 1.2rem;
+  height: var(--control-height);   /* same as account-type pills */
+  padding: 0 1.2rem;               /* horizontal padding only */
   border-radius:999px;
   background:var(--accent);
   color:#fff;
@@ -506,6 +612,7 @@ body.auth-page .btn{
   border:none;
   cursor:pointer;
   text-decoration:none;
+  margin-left: 0;                  /* align left with toggle group */
   transition:background .18s ease,
              transform .1s ease,
              box-shadow .18s ease;
